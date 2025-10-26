@@ -55,7 +55,7 @@ class Tokenizer:
         tokens = []
         pattern = (r'(\bSELECT\b|\bSCRAPE\b|\bEXTRACT\b|\bIN\b|\bIF\b|'r'!=|==|=|;|\n|'r'"(?:[^"]*)"|\'(?:[^\']*)\'|'r'@?[A-Za-z_][A-Za-z0-9_-]*|'r'\d+)')
 
-        for match in re.finditer(pattern, query, flags=re.IGNORECASE):
+        for match in re.finditer(pattern, query.replace("\n", ""), flags=re.IGNORECASE):
             raw_value = match.group(0)
             token = self._classify_token(raw_value)
             tokens.append(token)
