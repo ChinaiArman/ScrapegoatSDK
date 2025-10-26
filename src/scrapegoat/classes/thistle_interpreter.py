@@ -32,7 +32,6 @@ class ThistleInterpreter:
     KEYWORDS = {"POSITION"}
     NEGATIONS = {"NOT"}
     FLAGS = {}
-    ALL = {"ALL"}
     OPERATORS = {"=", "!="}
 
     def __init__(self):
@@ -44,7 +43,7 @@ class ThistleInterpreter:
         """
         """
         tokens = []
-        pattern = r'(\bSELECT\b|\bSCRAPE\b|\bIN\b|\bIF\b|\bALL\b|!=|==|=|;|\n|"(?:[^"]*)"|\'(?:[^\']*)\'|[A-Za-z_][A-Za-z0-9_-]*|\d+)'
+        pattern = r'(\bSELECT\b|\bSCRAPE\b|\bIN\b|\bIF\b|!=|==|=|;|\n|"(?:[^"]*)"|\'(?:[^\']*)\'|[A-Za-z_][A-Za-z0-9_-]*|\d+)'
 
         for match in re.finditer(pattern, query):
             value = match.group(0)
@@ -65,9 +64,6 @@ class ThistleInterpreter:
                 token_type = "NEGATION"
             elif value in self.FLAGS:
                 token_type = "FLAG"
-            elif value in self.ALL:
-                token_type = "NUMBER"
-                value = 0
             elif re.match(r'^(?:"[^"]*"|\'[^\']*\'|[A-Za-z_][A-Za-z0-9_-]*)$', value):
                 token_type = "IDENTIFIER"
                 if value[0] in ("'", '"'):
@@ -80,103 +76,132 @@ class ThistleInterpreter:
             tokens.append(Token(token_type, value, position, line))
         return tokens
         
+    def _actions_parser(self, tokens, index) -> tuple:
+        """
+        """
+        token = tokens[index]
+        if token.type != "ACTION":
+            raise SyntaxError(f"Expected SCRAPE or SELECT at token {token}")
+        action = token.value
+        index += 1
+        return action, index
+
+    def _count_parser(self, tokens, index) -> tuple:
+        """
+        """
+        token = tokens[index]
+        if token.type != "NUMBER":
+            count = 0
+        else:
+            count = int(token.value)
+            index += 1
+        return count, index
+
+    def _element_parser(self, tokens, index) -> tuple:
+        """
+        """
+        token = tokens[index]
+        if token.type != "IDENTIFIER":
+            raise SyntaxError(f"Expected element at token {token}")
+        element = token.value
+        index += 1
+        return element, index
+
+    def _in_condition_parser(self, tokens, index, element, negated) -> tuple:
+        """
+        """
+        token = tokens[index]
+        if token.type == "KEYWORD":
+            index += 1
+            token = tokens[index]
+            if token.type != "OPERATOR":
+                raise SyntaxError(f"Expected '=' after IN POSITION at token {token}")
+            if token.value == "!=":
+                negated = True
+            index += 1
+            token = tokens[index]
+            if token.type != "NUMBER":
+                raise SyntaxError(f"Expected number after IN POSITION = at token {token}")
+            position = int(token.value)
+            condition = InCondition(target="POSITION", value=position, negated=negated, query_tag=element)
+        else:
+            if token.type != "IDENTIFIER":
+                raise SyntaxError(f"Expected element after IN at token {token}")
+            target = token.value
+            condition = InCondition(target=target, negated=negated, query_tag=element)
+        index += 1
+        return condition, index
+    
+    def _if_condition_parser(self, tokens, index, element, negated) -> tuple:
+        """
+        """
+        token = tokens[index]
+        if token.type != "IDENTIFIER":
+            raise SyntaxError(f"Expected html_attribute after IF at token {token}")
+        html_attribute = token.value
+        index += 1
+        token = tokens[index]
+        if token.type != "OPERATOR":
+            raise SyntaxError(f"Expected '=' after IF {html_attribute} at token {token}")
+        if token.value == "!=":
+            negated = True
+        index += 1
+        token = tokens[index]
+        if token.type not in {"IDENTIFIER", "NUMBER"}:
+            raise SyntaxError(f"Expected value after IF {html_attribute} = at token {token}")
+        value = token.value
+        condition = IfCondition(html_attribute=html_attribute, value=value, negated=negated, query_tag=element)
+        index += 1
+        return condition, index
+
+    def _conditions_parser(self, tokens, index, element) -> tuple:
+        """
+        """
+        negated = False
+        if token.type == "NEGATION":
+            negated = True
+            index += 1
+            token = tokens[index]
+        if token.type != "CONDITIONAL":
+            raise SyntaxError(f"Expected conditional at token {token}")
+        conditional = token.value
+        index += 1
+
+        if conditional == "IN":
+            condition, index = self._in_condition_parser(tokens, index, element, negated)
+        elif conditional == "IF":
+            condition, index = self._if_condition_parser(tokens, index, element, negated)
+        else:
+            raise SyntaxError(f"Unknown conditional {conditional} at token {token}")
+        
+        return condition, index
+    
     def interpret(self, query: str) -> list[Thistle]:
         """
         """
         tokens = self._tokenizer(query)
         instructions = []
             
-        i = 0
-        while i < len(tokens):
-            # Action
-            token = tokens[i]
-            if token.type != "ACTION":
-                raise SyntaxError(f"Expected SCRAPE or SELECT at token {token}")
-            action = token.value
-            i += 1
-
-            # Count
-            token = tokens[i]
-            if token.type != "NUMBER":
-                raise SyntaxError(f"Expected number or ALL after {action} at token {token}")
-            count = int(token.value)
-            i += 1
-
-            # Element
-            token = tokens[i]
-            if token.type != "IDENTIFIER":
-                raise SyntaxError(f"Expected element after {action} {count} at token {token}")
-            element = token.value
-            i += 1
+        index = 0
+        while index < len(tokens):
+            action, index = self._actions_parser(tokens, index)
+            count, index = self._count_parser(tokens, index)
+            element, index = self._element_parser(tokens, index)
 
             # Conditions
             conditions = []
-            token = tokens[i]
+            token = tokens[index]
             while token.type != "SEMICOLON":
-                negated = False
-                if token.type == "NEGATION":
-                    negated = True
-                    i += 1
-                    token = tokens[i]
-                if token.type != "CONDITIONAL":
-                    raise SyntaxError(f"Expected conditional after {action} {count} {element} at token {token}")
-                conditional = token.value
-                i += 1
-
-                if conditional == "IN":
-                    token = tokens[i]
-                    if token.type == "KEYWORD":
-                        i += 1
-                        token = tokens[i]
-                        if token.type != "OPERATOR":
-                            raise SyntaxError(f"Expected '=' after IN POSITION at token {token}")
-                        if token.value == "!=":
-                            negated = True
-                        i += 1
-                        token = tokens[i]
-                        if token.type != "NUMBER":
-                            raise SyntaxError(f"Expected number after IN POSITION = at token {token}")
-                        position = int(token.value)
-                        condition = InCondition(target="POSITION", value=position, negated=negated, query_tag=element)
-                    else:
-                        if token.type != "IDENTIFIER":
-                            raise SyntaxError(f"Expected element after IN at token {token}")
-                        target = token.value
-                        condition = InCondition(target=target, negated=negated, query_tag=element)
-
-                elif conditional == "IF":
-                    token = tokens[i]
-                    if token.type != "IDENTIFIER":
-                        raise SyntaxError(f"Expected html_attribute after IF at token {token}")
-                    html_attribute = token.value
-                    i += 1
-                    token = tokens[i]
-                    if token.type != "OPERATOR":
-                        raise SyntaxError(f"Expected '=' after IF {html_attribute} at token {token}")
-                    if token.value == "!=":
-                        negated = True
-                    i += 1
-                    token = tokens[i]
-                    if token.type not in {"IDENTIFIER", "NUMBER"}:
-                        raise SyntaxError(f"Expected value after IF {html_attribute} = at token {token}")
-                    value = token.value
-                    condition = IfCondition(html_attribute=html_attribute, value=value, negated=negated, query_tag=element)
-                else:
-                    raise SyntaxError(f"Unknown conditional {conditional} at token {token}")
+                condition, index = self._conditions_parser(tokens, index, element)
                 conditions.append(condition)
-                i += 1
-                token = tokens[i]
+                token = tokens[index]
                 
             instructions.append(Thistle(action=action, count=count, element=element, conditions=conditions, flags=[]))
-            i += 1
-            # FLAGS
-            # TODO: Implement flags parsing
+            index += 1
 
         return instructions
     
             
-
-
 def main():
     """
     """

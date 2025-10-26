@@ -14,7 +14,11 @@ def main():
     shepherd = Shepherd()
     root = shepherd.sow(html)
 
-    Loom(root).weave()
+    query = "SCRAPE ALL h2 IN POSITION=4;" # A simple Goatspeak query to scrape all h2 elements
+    results = shepherd.lead_goat(root, query) # Execute the query against the HTML tree
+
+    for result in results:
+        print(result)
 
 
 if __name__ == "__main__":
