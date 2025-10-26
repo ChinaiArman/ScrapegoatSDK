@@ -27,10 +27,10 @@ class Token:
 class ThistleInterpreter:
     """
     """
-    ACTIONS = {"SELECT", "SCRAPE"}
-    CONDITIONALS = {"IF", "IN"}
-    KEYWORDS = {"POSITION"}
-    NEGATIONS = {"NOT"}
+    ACTIONS = {"select", "scrape"}
+    CONDITIONALS = {"if", "in"}
+    KEYWORDS = {"position"}
+    NEGATIONS = {"not"}
     FLAGS = {}
     OPERATORS = {"=", "!="}
 
@@ -45,33 +45,38 @@ class ThistleInterpreter:
         tokens = []
         pattern = r'(\bSELECT\b|\bSCRAPE\b|\bIN\b|\bIF\b|!=|==|=|;|\n|"(?:[^"]*)"|\'(?:[^\']*)\'|[A-Za-z_][A-Za-z0-9_-]*|\d+)'
 
-        for match in re.finditer(pattern, query):
-            value = match.group(0)
+        for match in re.finditer(pattern, query, flags=re.IGNORECASE):
+            raw_value = match.group(0)
             position = match.start()
             line = query.count('\n', 0, position) + 1
 
-            if value in self.ACTIONS:
-                token_type = "ACTION"
-            elif value in self.CONDITIONALS:
-                token_type = "CONDITIONAL"
-            elif value in self.KEYWORDS:
-                token_type = "KEYWORD"
-            elif value in self.OPERATORS:
-                token_type = "OPERATOR"
-            elif re.match(r'^\d+$', value):
-                token_type = "NUMBER"
-            elif value in self.NEGATIONS:
-                token_type = "NEGATION"
-            elif value in self.FLAGS:
-                token_type = "FLAG"
-            elif re.match(r'^(?:"[^"]*"|\'[^\']*\'|[A-Za-z_][A-Za-z0-9_-]*)$', value):
+            if raw_value[0] in ('"', "'") and raw_value[-1] == raw_value[0]:
+                value = raw_value[1:-1]
                 token_type = "IDENTIFIER"
-                if value[0] in ("'", '"'):
-                    value = value[1:-1]
-            elif value == ";":
-                token_type = "SEMICOLON"
             else:
-                token_type = "UNKNOWN"
+                value = raw_value.lower()
+                if value in self.ACTIONS:
+                    token_type = "ACTION"
+                elif value in self.CONDITIONALS:
+                    token_type = "CONDITIONAL"
+                elif value in self.KEYWORDS:
+                    token_type = "KEYWORD"
+                elif value in self.OPERATORS:
+                    token_type = "OPERATOR"
+                elif re.match(r'^\d+$', value):
+                    token_type = "NUMBER"
+                elif value in self.NEGATIONS:
+                    token_type = "NEGATION"
+                elif value in self.FLAGS:
+                    token_type = "FLAG"
+                elif re.match(r'^(?:"[^"]*"|\'[^\']*\'|[A-Za-z_][A-Za-z0-9_-]*)$', value):
+                    token_type = "IDENTIFIER"
+                    if value[0] in ("'", '"'):
+                        value = value[1:-1]
+                elif value == ";":
+                    token_type = "SEMICOLON"
+                else:
+                    token_type = "UNKNOWN"
 
             tokens.append(Token(token_type, value, position, line))
         return tokens
@@ -158,6 +163,7 @@ class ThistleInterpreter:
         """
         """
         negated = False
+        token = tokens[index]
         if token.type == "NEGATION":
             negated = True
             index += 1
@@ -167,9 +173,9 @@ class ThistleInterpreter:
         conditional = token.value
         index += 1
 
-        if conditional == "IN":
+        if conditional == "in":
             condition, index = self._in_condition_parser(tokens, index, element, negated)
-        elif conditional == "IF":
+        elif conditional == "if":
             condition, index = self._if_condition_parser(tokens, index, element, negated)
         else:
             raise SyntaxError(f"Unknown conditional {conditional} at token {token}")

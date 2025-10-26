@@ -14,7 +14,7 @@ def main():
     shepherd = Shepherd()
     root = shepherd.sow(html)
 
-    query = "SCRAPE ALL h2 IN POSITION=4;" # A simple Goatspeak query to scrape all h2 elements
+    query = "SCRAPE 1 h2 in position=2 if id='history';" # A simple Goatspeak query to scrape all h2 elements
     results = shepherd.lead_goat(root, query) # Execute the query against the HTML tree
 
     for result in results:
