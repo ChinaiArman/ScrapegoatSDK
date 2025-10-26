@@ -43,7 +43,8 @@ class ThistleInterpreter:
         """
         """
         tokens = []
-        pattern = r'(\bSELECT\b|\bSCRAPE\b|\bIN\b|\bIF\b|!=|==|=|;|\n|"(?:[^"]*)"|\'(?:[^\']*)\'|[A-Za-z_][A-Za-z0-9_-]*|\d+)'
+        pattern = (r'(\bSELECT\b|\bSCRAPE\b|\bIN\b|\bIF\b|'r'!=|==|=|;|\n|'r'"(?:[^"]*)"|\'(?:[^\']*)\'|'r'@?[A-Za-z_][A-Za-z0-9_-]*|'r'\d+)')
+
 
         for match in re.finditer(pattern, query, flags=re.IGNORECASE):
             raw_value = match.group(0)
@@ -69,7 +70,7 @@ class ThistleInterpreter:
                     token_type = "NEGATION"
                 elif value in self.FLAGS:
                     token_type = "FLAG"
-                elif re.match(r'^(?:"[^"]*"|\'[^\']*\'|[A-Za-z_][A-Za-z0-9_-]*)$', value):
+                elif re.match(r'^(?:"[^"]*"|\'[^\']*\'|@?[A-Za-z_][A-Za-z0-9_-]*)$', value):
                     token_type = "IDENTIFIER"
                     if value[0] in ("'", '"'):
                         value = value[1:-1]
@@ -142,20 +143,20 @@ class ThistleInterpreter:
         """
         token = tokens[index]
         if token.type != "IDENTIFIER":
-            raise SyntaxError(f"Expected html_attribute after IF at token {token}")
-        html_attribute = token.value
+            raise SyntaxError(f"Expected key after IF at token {token}")
+        key = token.value
         index += 1
         token = tokens[index]
         if token.type != "OPERATOR":
-            raise SyntaxError(f"Expected '=' after IF {html_attribute} at token {token}")
+            raise SyntaxError(f"Expected '=' after IF {key} at token {token}")
         if token.value == "!=":
             negated = True
         index += 1
         token = tokens[index]
         if token.type not in {"IDENTIFIER", "NUMBER"}:
-            raise SyntaxError(f"Expected value after IF {html_attribute} = at token {token}")
+            raise SyntaxError(f"Expected value after IF {key} = at token {token}")
         value = token.value
-        condition = IfCondition(html_attribute=html_attribute, value=value, negated=negated, query_tag=element)
+        condition = IfCondition(key=key, value=value, negated=negated, query_tag=element)
         index += 1
         return condition, index
 

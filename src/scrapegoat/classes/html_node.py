@@ -118,6 +118,27 @@ class HTMLNode:
             return False
         return value in self.html_attributes.get(key)
     
+    def has_attribute(self, key, value=None) -> bool:
+        """
+        """
+        if key == "tag_type":
+            if value is None:
+                return self.tag_type is not None
+            return self.tag_type == value
+        if key == "id":
+            if value is None:
+                return self.id is not None
+            return str(self.id) == value
+        if key == "has_data":
+            if value is None:
+                return self.has_data
+            return self.has_data == value
+        if key == "body":
+            if value is None:
+                return self.body is not None
+            return self.body == value
+        return False
+    
     def is_descendant_of(self, tag_type) -> bool:
         """
         """

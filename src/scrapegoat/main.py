@@ -14,12 +14,13 @@ def main():
     shepherd = Shepherd()
     root = shepherd.sow(html)
 
-    query = "SCRAPE 1 h2 in position=2 if id='history';" # A simple Goatspeak query to scrape all h2 elements
-    results = shepherd.lead_goat(root, query) # Execute the query against the HTML tree
+    query = "SCRAPE 1 h2 IF @id=History;"
+    results = shepherd.lead_goat(root, query)
 
     for result in results:
         print(result)
 
 
 if __name__ == "__main__":
+
     main()
