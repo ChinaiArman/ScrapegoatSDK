@@ -22,12 +22,30 @@ class HTMLNode:
         self.children = []
         self.retrieval_instructions = ""
         self.parent = parent
-        self.extract_fields = []
-        self.extract_flags = []
+        self.extract_fields = None
+        self.extract_flags = None
     
     def to_dict(self) -> str:
         """
         """
+        dict_representation = {}
+        if self.extract_fields is not None:
+            for field in self.extract_fields:
+                if field[0] == "@":
+                    attr_name = field[1:]
+                    dict_representation[attr_name] = self.html_attributes.get(attr_name)
+                else:
+                    if field == "id":
+                        dict_representation["id"] = self.id
+                    elif field == "tag_type":
+                        dict_representation["tag_type"] = self.tag_type
+                    elif field == "has_data":
+                        dict_representation["has_data"] = self.has_data
+                    elif field == "html_attributes":
+                        dict_representation["html_attributes"] = self.html_attributes
+                    elif field == "body":
+                        dict_representation["body"] = self.body
+            return dict_representation
         return {
             "id": self.id,
             "raw": self.raw,
@@ -41,11 +59,12 @@ class HTMLNode:
             "extract_fields": self.extract_fields,
             "extract_flags": self.extract_flags,
         }
-    
+                
+
     def to_string(self) -> str:
         """
         """
-        return f"HTMLNode(id={self.id}, tag_type={self.tag_type}, has_data={self.has_data}, html_attributes={self.html_attributes}, body='{self.body}', children={len(self.children)}, parent={self.parent.id if self.parent else None}, retrieval_instructions='{self.retrieval_instructions}')"
+        return str(self.to_dict())
 
     def to_html(self, indent=0) -> str:
         """
@@ -158,6 +177,12 @@ class HTMLNode:
         """
         self.extract_fields = fields
         self.extract_flags = flags
+
+    def clear_extract_instructions(self):
+        """
+        """
+        self.extract_fields = None
+        self.extract_flags = None
 
 
 def main():

@@ -4,9 +4,10 @@
 # IMPORTS
 import re
 from enum import Enum, auto
-from .thistle import Thistle
-from .conditions import InCondition, IfCondition
 from abc import ABC, abstractmethod
+
+from .thistle import SelectScrapeThistle, ExtractThistle
+from .conditions import InCondition, IfCondition
 
 
 class TokenType(Enum):
@@ -196,7 +197,7 @@ class ScrapeSelectParser(Parser):
             condition, index = self.condition_parser.parse(tokens, index, element)
             conditions.append(condition)
 
-        instruction = Thistle(action=action, count=count, element=element, conditions=conditions)
+        instruction = SelectScrapeThistle(action=action, count=count, element=element, conditions=conditions)
         return instruction, index + 1
     
 
@@ -221,7 +222,7 @@ class ExtractParser(Parser):
                 fields.append(tokens[index].value)
             index += 1
         
-        instruction = Thistle(action=action, count=0, element="", conditions=fields, flags=[])
+        instruction = ExtractThistle(action=action, fields=fields, flags=[])
         return instruction, index + 1
 
 
@@ -237,7 +238,7 @@ class ThistleInterpreter:
             "extract": ExtractParser(),
         }
 
-    def interpret(self, query: str) -> list[Thistle]:
+    def interpret(self, query: str) -> list:
         """
         """
         tokens = self.tokenizer.tokenize(query)
