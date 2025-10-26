@@ -6,6 +6,7 @@ import re
 from enum import Enum, auto
 from .thistle import Thistle
 from .conditions import InCondition, IfCondition
+from abc import ABC, abstractmethod
 
 
 class TokenType(Enum):
@@ -40,7 +41,7 @@ class Token:
 
 class Tokenizer:
     def __init__(self):
-        self.ACTIONS = {"select", "scrape"}
+        self.ACTIONS = {"select", "scrape", "extract"}
         self.CONDITIONALS = {"if", "in"}
         self.KEYWORDS = {"position"}
         self.OPERATORS = {"=", "!="}
@@ -51,7 +52,7 @@ class Tokenizer:
         """
         """
         tokens = []
-        pattern = (r'(\bSELECT\b|\bSCRAPE\b|\bIN\b|\bIF\b|'r'!=|==|=|;|\n|'r'"(?:[^"]*)"|\'(?:[^\']*)\'|'r'@?[A-Za-z_][A-Za-z0-9_-]*|'r'\d+)')
+        pattern = (r'(\bSELECT\b|\bSCRAPE\b|\bEXTRACT\b|\bIN\b|\bIF\b|'r'!=|==|=|;|\n|'r'"(?:[^"]*)"|\'(?:[^\']*)\'|'r'@?[A-Za-z_][A-Za-z0-9_-]*|'r'\d+)')
 
         for match in re.finditer(pattern, query, flags=re.IGNORECASE):
             raw_value = match.group(0)
@@ -82,7 +83,17 @@ class Tokenizer:
         return Token(TokenType.IDENTIFIER, raw_value)
     
 
-class ConditionParser:
+class Parser(ABC):
+    """
+    """
+    @abstractmethod
+    def parse(self, tokens: list[Token], index) -> tuple:
+        """
+        """
+        pass
+
+
+class ConditionParser(Parser):
     """
     """
     def __init__(self):
@@ -153,61 +164,100 @@ class ConditionParser:
         return condition, index
 
 
+class ScrapeSelectParser(Parser):
+    """
+    """
+    def __init__(self, condition_parser: ConditionParser):
+        """
+        """
+        self.condition_parser = condition_parser
+
+    def parse(self, tokens, index) -> tuple:
+        """
+        """
+        action = tokens[index].value
+        index += 1
+
+        # count
+        count = 0
+        if tokens[index].type == TokenType.NUMBER:
+            count = int(tokens[index].value)
+            index += 1
+
+        # element
+        if tokens[index].type != TokenType.IDENTIFIER:
+            raise SyntaxError(f"Expected element at token {tokens[index]}")
+        element = tokens[index].value
+        index += 1
+
+        # conditions
+        conditions = []
+        while tokens[index].type != TokenType.SEMICOLON:
+            condition, index = self.condition_parser.parse(tokens, index, element)
+            conditions.append(condition)
+
+        instruction = Thistle(action=action, count=count, element=element, conditions=conditions)
+        return instruction, index + 1
+    
+
+class ExtractParser(Parser):
+    """
+    """
+    def __init__(self):
+        """
+        """
+        pass
+
+    def parse(self, tokens, index) -> tuple:
+        """
+        """
+        fields = []
+
+        action = tokens[index].value
+        index += 1
+        
+        while tokens[index].type != TokenType.SEMICOLON:
+            if tokens[index].type == TokenType.IDENTIFIER:
+                fields.append(tokens[index].value)
+            index += 1
+        
+        instruction = Thistle(action=action, count=0, element="", conditions=fields, flags=[])
+        return instruction, index + 1
+
+
 class ThistleInterpreter:
     """
     """
     def __init__(self):
         self.tokenizer = Tokenizer()
         self.condition_parser = ConditionParser()
+        self.action_parsers = {
+            "scrape": ScrapeSelectParser(self.condition_parser),
+            "select": ScrapeSelectParser(self.condition_parser),
+            "extract": ExtractParser(),
+        }
 
     def interpret(self, query: str) -> list[Thistle]:
+        """
+        """
         tokens = self.tokenizer.tokenize(query)
         instructions = []
         index = 0
+
         while index < len(tokens):
-            action, index = self._parse_action(tokens, index)
-            count, index = self._parse_count(tokens, index)
-            element, index = self._parse_element(tokens, index)
+            token = tokens[index]
+            if token.type != TokenType.ACTION:
+                raise SyntaxError(f"Expected action at token {token}")
             
-            conditions = []
-            while tokens[index].type != TokenType.SEMICOLON:
-                condition, index = self.condition_parser.parse(tokens, index, element)
-                conditions.append(condition)
+            parser = self.action_parsers.get(token.value)
+            
+            if parser is None:
+                raise SyntaxError(f"Unknown action '{token.value}' at token {token}")
+            
+            instruction, index = parser.parse(tokens, index)
+            instructions.append(instruction)
 
-            instructions.append(Thistle(action=action, count=count, element=element, conditions=conditions))
-            index += 1
         return instructions
-        
-    def _parse_action(self, tokens, index) -> tuple:
-        """
-        """
-        token = tokens[index]
-        if token.type != TokenType.ACTION:
-            raise SyntaxError(f"Expected SCRAPE or SELECT at token {token}")
-        action = token.value
-        index += 1
-        return action, index
-
-    def _parse_count(self, tokens, index) -> tuple:
-        """
-        """
-        token = tokens[index]
-        if token.type != TokenType.NUMBER:
-            count = 0
-        else:
-            count = int(token.value)
-            index += 1
-        return count, index
-
-    def _parse_element(self, tokens, index) -> tuple:
-        """
-        """
-        token = tokens[index]
-        if token.type != TokenType.IDENTIFIER:
-            raise SyntaxError(f"Expected element at token {token}")
-        element = token.value
-        index += 1
-        return element, index
     
             
 def main():

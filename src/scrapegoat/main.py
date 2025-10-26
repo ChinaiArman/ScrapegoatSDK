@@ -14,7 +14,7 @@ def main():
     shepherd = Shepherd()
     root = shepherd.sow(html)
 
-    query = "SCRAPE h2 IF id=620;"
+    query = "SELECT div if @id='mw-content-text';scrape 3 p;extract id, tag_type;"
     results = shepherd.lead_goat(root, query)
 
     for result in results:

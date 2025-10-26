@@ -16,7 +16,7 @@ class Goat:
         i = 0
         while i < len(thistles):
             thistle = thistles[i]
-            if thistle.action == "SELECT":
+            if thistle.action.lower() == "select":
                 rebased_roots = thistle.execute(root)
                 sub_thistles = thistles[i + 1:]
                 for new_root in rebased_roots:
