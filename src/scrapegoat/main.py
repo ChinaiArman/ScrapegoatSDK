@@ -14,7 +14,7 @@ def main():
     shepherd = Shepherd()
     root = shepherd.sow(html)
 
-    query = "SCRAPE 1 h2 IF @id=History;"
+    query = "SCRAPE h2 IF id=620;"
     results = shepherd.lead_goat(root, query)
 
     for result in results:

@@ -6,7 +6,7 @@ from .conditions import InCondition
 class Thistle:
     """
     """
-    def __init__(self, action: str, count: int, element: str, conditions: list, flags: list):
+    def __init__(self, action: str, count: int, element: str, conditions: list=None, flags: list=None):
         """
         """
         self.action = action
