@@ -19,10 +19,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Langelozzi/ScrapeGoat"
-Documentation = "https://github.com/Langelozzi/ScrapeGoat/blob/main/sdk/README.md"
-Source = "https://github.com/Langelozzi/ScrapeGoat"
-Issues = "https://github.com/Langelozzi/ScrapeGoat/issues"
+Homepage = "https://github.com/ChinaiArman/scrapegoat"
+Documentation = "https://github.com/ChinaiArman/scrapegoat/blob/main/README.md"
+Source = "https://github.com/ChinaiArman/scrapegoat"
+Issues = "https://github.com/ChinaiArman/scrapegoat/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
