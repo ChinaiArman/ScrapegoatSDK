@@ -1,7 +1,7 @@
 """
 """
 
-from scrapegoat import Shepherd, Sheepdog, Loom
+from scrapegoat import Shepherd, Sheepdog
 
 
 def main():
@@ -17,12 +17,11 @@ def main():
     query = """
     SELECT table;
     SCRAPE a;
-    EXTRACT @href;
+    EXTRACT @href, @title;
     """
     results = shepherd.lead_goat(root, query)
 
-    for result in results:
-        print(result)
+    print([result.to_dict() for result in results])
 
 
 if __name__ == "__main__":

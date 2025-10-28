@@ -3,7 +3,7 @@
 
 from .html_gardener import HTMLGardener
 from .goat import Goat
-from .thistle_interpreter import ThistleInterpreter
+from .interpreter import ThistleInterpreter
 
 
 class Shepherd:
