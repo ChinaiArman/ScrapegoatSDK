@@ -49,3 +49,13 @@ class Shepherd:
             self.milkman.deliver(results, deliver_commands[0])
 
         return set(results)
+
+
+def main():
+    """
+    """
+    pass
+
+
+if __name__ == "__main__":
+    main()
