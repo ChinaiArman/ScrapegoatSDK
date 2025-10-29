@@ -22,13 +22,13 @@ class Command(ABC):
         pass
 
 
-class GrazeCommand:
+class GrazeCommand(Command):
     """
     """
     def __init__(self, action: str, count: int, element: str, conditions: list=None, flags: list=None):
         """
         """
-        self.action = action
+        super().__init__(action=action)
         self.count = count
         self.element = element
         self.conditions = conditions or []
@@ -37,27 +37,6 @@ class GrazeCommand:
         for cond in self.conditions:
             if isinstance(cond, InCondition) and cond.target == "POSITION" and cond.query_tag is None:
                 cond.query_tag = self.element
-
-    def __str__(self):
-        """
-        """
-        return f"GrazeCommand(action={self.action}, count={self.count}, element={self.element}, conditions={self.conditions}, flags={self.flags})"
-    
-    def to_dict(self) -> dict:
-        """
-        """
-        return {
-            "action": self.action,
-            "count": self.count,
-            "element": self.element,
-            "conditions": [str(c) for c in self.conditions],
-            "flags": self.flags,
-        }
-    
-    def to_string(self) -> str:
-        """
-        """
-        return str(self.to_dict())
     
     def evaluate(self, node, root) -> bool:
         """
@@ -78,40 +57,37 @@ class GrazeCommand:
         return results
     
 
-class ChurnCommand:
+class ChurnCommand(Command):
     """
     """
-    def __init__(self, action: str, fields: list = None, flags: list = None):
+    def __init__(self, fields: list = None, flags: list = None):
         """
         """
-        self.action = action
+        super().__init__(action="extract")
         self.fields = fields or []
         self.flags = flags or []
-
-    def __str__(self):
-        """
-        """
-        return f"ChurnCommand(action={self.action}, fields={self.fields}, flags={self.flags})"
-    
-    def to_dict(self) -> dict:
-        """
-        """
-        return {
-            "action": self.action,
-            "fields": self.fields,
-            "flags": self.flags,
-        }
-    
-    def to_string(self) -> str:
-        """
-        """
-        return str(self.to_dict())
     
     def execute(self, node) -> None:
         """
         """
         node.set_extract_instructions(self.fields, self.flags)
         
+
+class DeliverCommand(Command):
+    """
+    """
+    def __init__(self, file_type: str, flags: list = None):
+        """
+        """
+        super().__init__(action="output")
+        self.file_type = file_type
+        self.flags = flags or []
+
+    def execute(self, nodes: list) -> None:
+        """
+        """
+        pass
+
 
 def main():
     """
