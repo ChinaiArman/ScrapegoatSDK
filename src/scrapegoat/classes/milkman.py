@@ -9,7 +9,7 @@ class Milkman:
         """
         pass
 
-    def deliver(self, deliver_command, results: list) -> None:
+    def deliver(self, results: list, deliver_command) -> None:
         """
         """
         pass

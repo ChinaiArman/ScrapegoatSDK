@@ -22,8 +22,6 @@ class Goat:
                 for new_root in rebased_roots:
                     results.extend(self.feast(new_root, graze_command_subset))
                 return results
-            if graze_command.action.lower() == "extract":
-                [graze_command.execute(node) for node in results]
             else:
                 results.extend(graze_command.execute(root))
             i += 1

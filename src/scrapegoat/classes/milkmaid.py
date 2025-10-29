@@ -9,10 +9,13 @@ class Milkmaid:
         """
         pass
 
-    def churn(self, churn_command, results: list) -> None:
+    def churn(self, results: list, churn_command) -> None:
         """
         """
-        pass
+        for node in results:
+            churn_command.execute(node)
+        return
+
 
 def main():
     """
