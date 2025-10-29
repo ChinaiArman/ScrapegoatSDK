@@ -104,7 +104,7 @@ class Gardener(HTMLParser):
                 current.parent.body = stripped
             current.parent.has_data = True
     
-    def append_root_tag(self, raw_html: str) -> str:
+    def _append_root_tag(self, raw_html: str) -> str:
         """
         """
         html_lower = raw_html.lower()
@@ -125,7 +125,7 @@ class Gardener(HTMLParser):
         self.tag_counts = {}
         self.reset()
 
-        wrapped_html = self.append_root_tag(raw_html)
+        wrapped_html = self._append_root_tag(raw_html)
         self.feed(wrapped_html)
         return
 

@@ -38,7 +38,7 @@ class GrazeCommand(Command):
             if isinstance(cond, InCondition) and cond.target == "POSITION" and cond.query_tag is None:
                 cond.query_tag = self.element
     
-    def evaluate(self, node, root) -> bool:
+    def _evaluate(self, node, root) -> bool:
         """
         """
         if node.tag_type != self.element:
@@ -50,7 +50,7 @@ class GrazeCommand(Command):
         """
         results = []
         for node in root.preorder_traversal():
-            if self.evaluate(node, root):
+            if self._evaluate(node, root):
                 results.append(node)
                 if self.count > 0 and len(results) >= self.count:
                     break
