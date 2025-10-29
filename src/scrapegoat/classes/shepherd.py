@@ -1,7 +1,7 @@
 """
 """
 
-from .html_gardener import HTMLGardener
+from .gardener import Gardener
 from .goat import Goat
 from .interpreter import ThistleInterpreter
 
@@ -12,7 +12,7 @@ class Shepherd:
     def __init__(self):
         """
         """
-        self.gardener = HTMLGardener()
+        self.gardener = Gardener()
         self.interpreter = ThistleInterpreter()
         self.goat = Goat()
 

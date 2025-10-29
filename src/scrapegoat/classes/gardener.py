@@ -6,7 +6,7 @@ from html.parser import HTMLParser
 from .html_node import HTMLNode
 
 
-class HTMLGardener(HTMLParser):
+class Gardener(HTMLParser):
     """
     """
     VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
