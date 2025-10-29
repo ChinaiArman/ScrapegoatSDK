@@ -1,3 +1,3 @@
-from .classes import Goat, HTMLNode, Condition, InCondition, IfCondition, Gardener, ThistleInterpreter, Thistle, Shepherd, Sheepdog, Loom, TokenType, Token, Tokenizer, Parser, ConditionParser, ScrapeSelectParser, ExtractParser, Milkmaid, Milkman
+from .classes import Goat, HTMLNode, Condition, InCondition, IfCondition, Gardener, Interpeter, Command, Shepherd, Sheepdog, Loom, TokenType, Token, Tokenizer, Parser, ConditionParser, ScrapeSelectParser, ExtractParser, Milkmaid, Milkman, ChurnCommand, GrazeCommand
 
-__all__ = ["Goat", "HTMLNode", "Condition", "InCondition", "IfCondition", "Gardener", "ThistleInterpreter", "Thistle", "Shepherd", "Sheepdog", "Loom", "TokenType", "Token", "Tokenizer", "Parser", "ConditionParser", "ScrapeSelectParser", "ExtractParser", "Milkmaid", "Milkman"]
+__all__ = ["Goat", "HTMLNode", "Condition", "InCondition", "IfCondition", "Gardener", "Interpeter", "Command", "Shepherd", "Sheepdog", "Loom", "TokenType", "Token", "Tokenizer", "Parser", "ConditionParser", "ScrapeSelectParser", "ExtractParser", "Milkmaid", "Milkman", "ChurnCommand", "GrazeCommand"]

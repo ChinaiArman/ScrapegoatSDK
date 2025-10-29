@@ -9,7 +9,7 @@ class Milkmaid:
         """
         pass
 
-    def churn(self, thistle, results: list) -> None:
+    def churn(self, churn_command, results: list) -> None:
         """
         """
         pass

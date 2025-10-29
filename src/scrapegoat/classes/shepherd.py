@@ -3,7 +3,7 @@
 
 from .gardener import Gardener
 from .goat import Goat
-from .interpreter import ThistleInterpreter
+from .interpreter import Interpeter
 from .milkmaid import Milkmaid
 from .milkman import Milkman
 
@@ -15,7 +15,7 @@ class Shepherd:
         """
         """
         self.gardener = Gardener()
-        self.interpreter = ThistleInterpreter()
+        self.interpreter = Interpeter()
         self.goat = Goat()
         self.milkmaid = Milkmaid()
         self.milkman = Milkman()
@@ -29,6 +29,6 @@ class Shepherd:
     def herd(self, root, query: str) -> set:
         """
         """
-        thistles = self.interpreter.interpret(query)
-        results = self.goat.feast(root, thistles)
+        commands = self.interpreter.interpret(query)
+        results = self.goat.feast(root, commands)
         return set(results)

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from .conditions import InCondition
 
 
-class Thistle(ABC):
+class Command(ABC):
     """
     """
     @abstractmethod
@@ -22,7 +22,7 @@ class Thistle(ABC):
         pass
 
 
-class SelectScrapeThistle:
+class GrazeCommand:
     """
     """
     def __init__(self, action: str, count: int, element: str, conditions: list=None, flags: list=None):
@@ -41,7 +41,7 @@ class SelectScrapeThistle:
     def __str__(self):
         """
         """
-        return f"Thistle(action={self.action}, count={self.count}, element={self.element}, conditions={self.conditions}, flags={self.flags})"
+        return f"GrazeCommand(action={self.action}, count={self.count}, element={self.element}, conditions={self.conditions}, flags={self.flags})"
     
     def to_dict(self) -> dict:
         """
@@ -78,7 +78,7 @@ class SelectScrapeThistle:
         return results
     
 
-class ExtractThistle:
+class ChurnCommand:
     """
     """
     def __init__(self, action: str, fields: list = None, flags: list = None):
@@ -91,7 +91,7 @@ class ExtractThistle:
     def __str__(self):
         """
         """
-        return f"ExtractThistle(action={self.action}, fields={self.fields}, flags={self.flags})"
+        return f"ChurnCommand(action={self.action}, fields={self.fields}, flags={self.flags})"
     
     def to_dict(self) -> dict:
         """
