@@ -16,7 +16,7 @@ def main():
 
     query = """
     SELECT table;
-    SCRAPE a;
+    SCRAPE a IF @href='/wiki/Help:Maintenance_template_removal';
     EXTRACT @href, @title;
     """
     results = shepherd.lead_goat(root, query)
