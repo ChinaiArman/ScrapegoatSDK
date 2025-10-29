@@ -4,6 +4,8 @@
 from .gardener import Gardener
 from .goat import Goat
 from .interpreter import ThistleInterpreter
+from .milkmaid import Milkmaid
+from .milkman import Milkman
 
 
 class Shepherd:
@@ -15,14 +17,16 @@ class Shepherd:
         self.gardener = Gardener()
         self.interpreter = ThistleInterpreter()
         self.goat = Goat()
+        self.milkmaid = Milkmaid()
+        self.milkman = Milkman()
 
-    def sow(self, raw_html: str):
+    def pasture(self, raw_html: str):
         """
         """
         self.gardener.grow_tree(raw_html)
         return self.gardener.get_root()
     
-    def lead_goat(self, root, query: str) -> set:
+    def herd(self, root, query: str) -> set:
         """
         """
         thistles = self.interpreter.interpret(query)

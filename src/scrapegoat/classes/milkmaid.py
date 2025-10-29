@@ -9,6 +9,10 @@ class Milkmaid:
         """
         pass
 
+    def churn(self, thistle, results: list) -> None:
+        """
+        """
+        pass
 
 def main():
     """

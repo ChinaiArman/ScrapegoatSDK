@@ -9,6 +9,11 @@ class Milkman:
         """
         pass
 
+    def deliver(self, thistle, results: list) -> None:
+        """
+        """
+        pass
+
 
 def main():
     """
