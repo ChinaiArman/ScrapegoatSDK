@@ -1,25 +1,20 @@
 ControlPanel {
-	height: 40%;
+	height: 50%;
 	padding: 1;
 }
 
-ControlPanel > HorizontalGroup {
+#ctrl-buttons {
+	padding: 1 1 1 1;
+}
+
+#node-add-remove-cont {
+	width: 90%;
+}
+
+#copy-query-cont {
+	content-align: right middle;
+}
+
+Label {
 	padding: 0 1 1 1;
-}
-
-#node-info {
-	dock: left;
-	align-vertical: middle;
-}
-
-#node-buttons {
-	
-}
-
-#node-add {
-	align-vertical: middle;
-}
-
-#node-remove {
-	align-vertical: middle;
 }

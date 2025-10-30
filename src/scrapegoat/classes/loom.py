@@ -1,6 +1,6 @@
 from textual.app import App
-from textual.widgets import Header, Footer, Tree, Button, Label, TextArea
-from textual.containers import HorizontalGroup, VerticalGroup
+from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Collapsible, Checkbox
+from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
 from importlib.resources import files
 
 TextNodes = [
@@ -14,6 +14,7 @@ class NodeWrapper():
 		self.node = html_node
 		self.branch = branch
 		self.added_to_query = False
+		self.extract_attributes = []
 
 	def _update_branch_label(self, new_label:str):
 		self.branch.label = new_label
@@ -37,11 +38,34 @@ class NodeWrapper():
 					node_text += f" {self.node.body.strip()}"
 				self._update_branch_label(node_text)
 
-	def getQuerying(self) -> bool:
+	def get_querying(self) -> bool:
 		return self.added_to_query
 	
-	def getRetrievalInstructions(self) -> str:
-		return self.node.retrieval_instructions
+	def get_retrieval_instructions(self) -> str:
+		if len(self.extract_attributes) == 0:
+			return self.node.retrieval_instructions
+		else:
+			instructions = self.node.retrieval_instructions
+			instructions += "\nEXTRACT "
+			for attribute in self.extract_attributes:
+				instructions += attribute
+				if attribute != self.extract_attributes[-1]:
+					instructions += ", "
+
+			instructions += ";"
+
+			return instructions
+	
+	def append_attribute(self, attribute_name) -> None:
+		if attribute_name not in self.extract_attributes:
+			self.extract_attributes.append(attribute_name)
+
+	def remove_attribute(self, attribute_name) -> None:
+		if attribute_name in self.extract_attributes:
+			self.extract_attributes.remove(attribute_name)
+
+	def check_query_attribute(self, attribute) -> bool:
+		return attribute in self.extract_attributes
 
 class ControlPanel(VerticalGroup):
 	def __init__(self, **kwargs):
@@ -50,33 +74,46 @@ class ControlPanel(VerticalGroup):
 		self.query_nodes = []
 
 	def compose(self):
-		self.node_label = Label("<no node selected>", id="node-info")
+		self.node_details = {
+			"tag_type": Label("<no node selected>"),
+			"queried_attributes": HorizontalScroll()
+		}
+
+		with Collapsible(title="Node Details"):
+			yield self.node_details["tag_type"]
+			yield self.node_details["queried_attributes"]
+
 		self.contextual_button = Button("<+>", id="node-add-remove", variant="success")
+		self.copy_button = Button("<📋>", id="copy-query", variant="primary")
 
 		yield HorizontalGroup(
-			self.node_label,
-			HorizontalGroup(
-				self.contextual_button,
-				id="node-buttons",
-			)
+			HorizontalGroup(self.contextual_button, id="node-add-remove-cont"),
+			HorizontalGroup(self.copy_button, id="copy-query-cont"),
+			id="ctrl-buttons",
 		)
+
 		yield TextArea("", read_only=True)
 
 	def update_node(self, node:NodeWrapper):
-		self.current_node = node
-		lab = self.node_label
-		if node is None:
-			lab.update("<no node selected>")
-		else:
-			info = f"ID: {node.id} | Tag: {node.tag_type}"
-			lab.update(info)
+		for child in list(self.node_details["queried_attributes"].children):
+			child.remove()
 
-			if node.getQuerying():
+		self.current_node = node
+		if node is not None:
+			if node.get_querying():
 				self.contextual_button.label = "<->"
 				self.contextual_button.variant = "error"
 			else:
 				self.contextual_button.label = "<+>"
 				self.contextual_button.variant = "success"
+
+			self.node_details["tag_type"].update(f"Type: <{node.tag_type}>")
+			for attribute in node.node.html_attributes:
+				index = f"query-attribute-{node.id}-{attribute.replace("@", "")}"
+
+				self.node_details["queried_attributes"].mount(
+					Checkbox(attribute, id=index, value=self.current_node.check_query_attribute(attribute))
+				)
 	
 	def add_node(self):
 		if self.current_node and self.current_node not in self.query_nodes:
@@ -85,25 +122,44 @@ class ControlPanel(VerticalGroup):
 
 			self.current_node.setQuerying(True)
 			
-			text_area.text += self.current_node.getRetrievalInstructions() + "\n"
+			text_area.text += self.current_node.get_retrieval_instructions() + "\n"
 
-			self.update_node(self.current_node)
+			self.contextual_button.label = "<->"
+			self.contextual_button.variant = "error"
+
+	def append_attribute(self, attribute):
+		prev_instr = self.current_node.get_retrieval_instructions()
+		self.current_node.append_attribute(attribute)
+		new_instr = self.current_node.get_retrieval_instructions()
+
+		text_area = self.query_one(TextArea)
+		text_area.text = text_area.text.replace(prev_instr, new_instr)
 	
 	def remove_node(self):
 		if self.current_node and self.current_node in self.query_nodes:
 			self.query_nodes.remove(self.current_node)
 			text_area = self.query_one(TextArea)
-			lines = text_area.text.split("\n")
-			lines = [line for line in lines if line.strip() != self.current_node.getRetrievalInstructions()]
-			text_area.text = "\n".join(lines)
+			
+			text_area.text = text_area.text.replace(self.current_node.get_retrieval_instructions() + "\n", "")
 
 			self.current_node.setQuerying(False)
 
-			self.update_node(self.current_node)
+			self.contextual_button.label = "<+>"
+			self.contextual_button.variant = "success"
+
+	def remove_attribute(self, attribute):
+		prev_instr = self.current_node.get_retrieval_instructions()
+		self.current_node.remove_attribute(attribute)
+		new_instr = self.current_node.get_retrieval_instructions()
+
+		text_area = self.query_one(TextArea)
+		text_area.text = text_area.text.replace(prev_instr, new_instr)
 
 class Loom(App):
 	CSS_PATH = str(files("scrapegoat").joinpath("gui-styles/tapestry.tcss"))
-	BINDINGS = []
+	BINDINGS = [
+		("ctrl+n", "_add_remove_node()", "Add/Remove Node"),
+	]
 
 	def __init__(self, root_node, **kwargs):
 		super().__init__(**kwargs)
@@ -139,6 +195,13 @@ class Loom(App):
 			self.nodes[child.id] = NodeWrapper(child, child_branch)
 
 		return tree
+	
+	def _add_remove_node(self) -> None:
+		if self.control_panel and self.control_panel.current_node:
+			if self.control_panel.current_node.get_querying() == False:
+				self.control_panel.add_node()
+			else:
+				self.control_panel.remove_node()
 
 	def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
 		if self.control_panel:
@@ -146,11 +209,13 @@ class Loom(App):
 
 	def on_button_pressed(self, event: Button.Pressed) -> None:
 		if event.button.id == "node-add-remove":
-			if self.control_panel and self.control_panel.current_node:
-				if self.control_panel.current_node.getQuerying() == False:
-					self.control_panel.add_node()
-				else:
-					self.control_panel.remove_node()
+			self._add_remove_node()
+
+	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+		if event.checkbox.value:
+			self.control_panel.append_attribute(str(event.checkbox.label))
+		else:
+			self.control_panel.remove_attribute(str(event.checkbox.label))
 
 	def compose(self):
 		yield Header(name="ScrapeGoat", icon="🐐")
