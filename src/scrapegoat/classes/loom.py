@@ -1,4 +1,5 @@
 from textual.app import App
+from textual.binding import Binding
 from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Collapsible, Checkbox
 from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
 from importlib.resources import files
@@ -158,8 +159,8 @@ class ControlPanel(VerticalGroup):
 class Loom(App):
 	CSS_PATH = str(files("scrapegoat").joinpath("gui-styles/tapestry.tcss"))
 	BINDINGS = [
-		("ctrl+n", "_add_remove_node()", "Add/Remove Node"),
-	]
+		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
+	] # Why doesn't this work :(
 
 	def __init__(self, root_node, **kwargs):
 		super().__init__(**kwargs)
@@ -196,7 +197,7 @@ class Loom(App):
 
 		return tree
 	
-	def _add_remove_node(self) -> None:
+	def add_remove_node(self) -> None:
 		if self.control_panel and self.control_panel.current_node:
 			if self.control_panel.current_node.get_querying() == False:
 				self.control_panel.add_node()
@@ -209,7 +210,11 @@ class Loom(App):
 
 	def on_button_pressed(self, event: Button.Pressed) -> None:
 		if event.button.id == "node-add-remove":
-			self._add_remove_node()
+			self.add_remove_node()
+
+	def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
+		if self.control_panel:
+			self.add_remove_node()
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
 		if event.checkbox.value:
