@@ -1,7 +1,7 @@
 """
 """
 
-from scrapegoat import Shepherd, Sheepdog
+from scrapegoat import Shepherd, Sheepdog, Loom
 
 
 def main():
@@ -13,6 +13,8 @@ def main():
     
     shepherd = Shepherd()
     root = shepherd.pasture(html)
+
+    Loom(root).weave()
 
     query = """
     SELECT table;
