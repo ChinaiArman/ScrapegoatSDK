@@ -1,7 +1,7 @@
 """
 """
 
-from scrapegoat import Shepherd, Sheepdog, Loom
+from scrapegoat import Shepherd, Sheepdog
 
 
 def main():
@@ -12,17 +12,16 @@ def main():
     html = sheepdog.fetch("https://en.wikipedia.org/wiki/Web_scraping")
     
     shepherd = Shepherd()
-    root = shepherd.sow(html)
+    root = shepherd.pasture(html)
 
     query = """
     SELECT table;
-    SCRAPE a;
-    EXTRACT @href;
+    SCRAPE a IF @href='/wiki/Help:Maintenance_template_removal';
+    EXTRACT @href, @title;
     """
-    results = shepherd.lead_goat(root, query)
+    results = shepherd.herd(root, query)
 
-    for result in results:
-        print(result)
+    print([result.to_dict() for result in results])
 
 
 if __name__ == "__main__":
