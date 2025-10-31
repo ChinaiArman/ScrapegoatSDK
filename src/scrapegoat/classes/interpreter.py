@@ -265,14 +265,14 @@ class ExtractParser(Parser):
         index += 1
         
         # fields
-        while tokens[index].type != TokenType.SEMICOLON:
+        while tokens[index].type != TokenType.SEMICOLON and tokens[index].type != TokenType.FLAG:
             if tokens[index].type == TokenType.IDENTIFIER:
                 fields.append(tokens[index].value)
             index += 1
         
         # flags
         flags = {}
-        if tokens[index - 1].type != TokenType.SEMICOLON:
+        if tokens[index].type == TokenType.FLAG:
             flags, index = self.flag_parser.parse(tokens, index)
 
         instruction = ChurnCommand(fields=fields, **flags)
@@ -300,7 +300,7 @@ class OutputParser(Parser):
 
         # flags
         flags = {}
-        if tokens[index].type != TokenType.SEMICOLON:
+        if tokens[index].type == TokenType.FLAG:
             flags, index = self.flag_parser.parse(tokens, index)
 
         instruction = DeliverCommand(file_type=file_type, **flags)

@@ -15,12 +15,12 @@ def main():
     root = shepherd.pasture(html)
 
     query = """
-    SCRAPE 1 table;
-    OUTPUT json --filename "banana.json" --filepath "./outputs";
+    SCRAPE 3 table;
+    OUTPUT csv --filename "test" --filepath "./outputs";
     """
     results = shepherd.herd(root, query)
 
-    print([result.to_dict() for result in results])
+    # print([result.to_dict() for result in results])
 
 
 if __name__ == "__main__":
