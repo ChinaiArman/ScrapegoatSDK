@@ -8,6 +8,10 @@ TextNodes = [
 	"p", "h1", "h2", "h3", "h4", "h5", "h6", "span", "li", "a"
 ]
 
+NodeAttributes = [
+	"tag_type", "id", "has_data", "body"
+]
+
 class NodeWrapper():
 	def __init__(self, html_node, branch):
 		self.id = html_node.id
@@ -109,12 +113,23 @@ class ControlPanel(VerticalGroup):
 				self.contextual_button.variant = "success"
 
 			self.node_details["tag_type"].update(f"Type: <{node.tag_type}>")
-			for attribute in node.node.html_attributes:
-				index = f"query-attribute-{node.id}-{attribute.replace("@", "")}"
+
+			for node_attribute in NodeAttributes:
+				index = f"node-attribute-{node.id}-{node_attribute}"
+
+				if node.node.has_attribute(node_attribute):
+					self.node_details["queried_attributes"].mount(
+						Checkbox(node_attribute, id=index, value=self.current_node.check_query_attribute(node_attribute))
+					)
+
+			for html_attribute in node.node.html_attributes:
+				index = f"html-attribute-{node.id}-{html_attribute.replace("@", "")}"
 
 				self.node_details["queried_attributes"].mount(
-					Checkbox(attribute, id=index, value=self.current_node.check_query_attribute(attribute))
+					Checkbox(html_attribute, id=index, value=self.current_node.check_query_attribute(html_attribute))
 				)
+
+			
 	
 	def add_node(self):
 		if self.current_node and self.current_node not in self.query_nodes:
@@ -210,10 +225,6 @@ class Loom(App):
 
 	def on_button_pressed(self, event: Button.Pressed) -> None:
 		if event.button.id == "node-add-remove":
-			self.add_remove_node()
-
-	def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
-		if self.control_panel:
 			self.add_remove_node()
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
