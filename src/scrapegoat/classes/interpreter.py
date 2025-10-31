@@ -133,7 +133,7 @@ class FlagParser(Parser):
                 flag_value = token.value
                 index += 1
             flags[flag_name] = flag_value
-        return flags, index + 1
+        return flags, index
 
 
 class ConditionParser(Parser):
