@@ -15,9 +15,7 @@ def main():
     root = shepherd.pasture(html)
 
     query = """
-    SELECT table;
-    SCRAPE a IF @href='/wiki/Help:Maintenance_template_removal';
-    EXTRACT id, @href, @title;
+    SCRAPE 1 table;
     OUTPUT csv;
     """
     results = shepherd.herd(root, query)

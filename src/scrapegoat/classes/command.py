@@ -104,8 +104,6 @@ class DeliverCommand(Command):
         
     def _flatten_dict(self, d: dict, parent_key: str = '', sep: str = '.') -> dict:
         """
-        Flattens nested dictionaries (e.g. html_attributes).
-        Does not descend into lists like children.
         """
         items = {}
         for k, v in d.items():
@@ -118,19 +116,20 @@ class DeliverCommand(Command):
 
     def _collect_nodes(self, node_dict: dict, all_nodes: list) -> dict:
         """
-        Recursively collect a node and all its children into all_nodes.
-        Returns the flattened version of the node with its children replaced by IDs.
         """
         node_copy = node_dict.copy()
 
+        had_children = "children" in node_copy
         children = node_copy.pop("children", [])
         child_ids = []
+
         for child in children:
             child_flat = self._collect_nodes(child, all_nodes)
             child_ids.append(child_flat.get("id"))
         
         flattened = self._flatten_dict(node_copy)
-        flattened["children"] = child_ids
+        if had_children:
+            flattened["children"] = child_ids
 
         all_nodes.append(flattened)
         return node_copy
@@ -138,14 +137,12 @@ class DeliverCommand(Command):
 
     def _to_csv(self, nodes: list) -> None:
         """
-        Flatten hierarchical nodes into rows, bubbling children up.
         """
         all_nodes = []
         for node in nodes:
             node_dict = node.to_dict()
             self._collect_nodes(node_dict, all_nodes)
 
-        # Collect all unique fieldnames
         fieldnames = set()
         for nd in all_nodes:
             fieldnames.update(nd.keys())
