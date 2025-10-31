@@ -15,7 +15,8 @@ def main():
     root = shepherd.pasture(html)
 
     query = """
-    SCRAPE 3 table;
+    SCRAPE p;
+    EXTRACT id, body;
     OUTPUT csv --filename "test" --filepath "./outputs";
     """
     results = shepherd.herd(root, query)
