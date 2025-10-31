@@ -2,6 +2,9 @@
 """
 
 from abc import ABC, abstractmethod
+import os
+import json
+import csv
 
 from .conditions import InCondition
 
@@ -76,17 +79,49 @@ class ChurnCommand(Command):
 class DeliverCommand(Command):
     """
     """
-    def __init__(self, file_type: str, flags: list = None):
+    VALID_TYPES = {"csv", "json"}
+
+    def __init__(self, file_type: str, filepath: str = None, filename: str = None):
         """
         """
         super().__init__(action="output")
         self.file_type = file_type
-        self.flags = flags or []
+        self.filepath = filepath or os.getcwd()
+        base, ext = os.path.splitext(filename or f"output.{file_type}")
+        self.filename = base + (ext if ext else f".{file_type}")
+        self.full_path = os.path.join(self.filepath, self.filename)
 
-    def execute(self, nodes: list) -> None:
+    def execute(self, nodes: list) -> str:
         """
         """
-        pass
+        os.makedirs(self.filepath, exist_ok=True)
+
+        if self.file_type.lower() == "csv":
+            self._to_csv(nodes)
+        elif self.file_type.lower() == "json":
+            self._to_json(nodes)
+        return self.full_path
+        
+    def _to_csv(self, nodes: list) -> None:
+        """
+        """
+        nodes_as_dicts = [node.to_dict() for node in nodes]
+        fieldnames = set()
+        for node_dict in nodes_as_dicts:
+            fieldnames.update(node_dict.keys())
+        fieldnames = list(fieldnames)
+        with open(self.full_path, mode='w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for node_dict in nodes_as_dicts:
+                writer.writerow(node_dict)
+
+    def _to_json(self, nodes: list) -> None:
+        """
+        """
+        nodes_as_dicts = [node.to_dict() for node in nodes]
+        with open(self.full_path, mode='w', encoding='utf-8') as jsonfile:
+            json.dump(nodes_as_dicts, jsonfile, indent=4)
 
 
 def main():

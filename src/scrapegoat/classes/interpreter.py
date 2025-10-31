@@ -6,7 +6,7 @@ import re
 from enum import Enum, auto
 from abc import ABC, abstractmethod
 
-from .command import GrazeCommand, ChurnCommand
+from .command import GrazeCommand, ChurnCommand, DeliverCommand
 from .conditions import InCondition, IfCondition
 
 
@@ -19,6 +19,7 @@ class TokenType(Enum):
     OPERATOR = auto()
     NUMBER = auto()
     IDENTIFIER = auto()
+    FILE_TYPE = auto()
     NEGATION = auto()
     FLAG = auto()
     SEMICOLON = auto()
@@ -42,18 +43,19 @@ class Token:
 
 class Tokenizer:
     def __init__(self):
-        self.ACTIONS = {"select", "scrape", "extract"}
+        self.ACTIONS = {"select", "scrape", "extract", "output"}
         self.CONDITIONALS = {"if", "in"}
         self.KEYWORDS = {"position"}
         self.OPERATORS = {"=", "!="}
         self.NEGATIONS = {"not"}
+        self.FILE_TYPES = {"json", "csv"}
         self.FLAGS = {}
 
     def tokenize(self, query: str) -> list[Token]:
         """
         """
         tokens = []
-        pattern = (r'(\bSELECT\b|\bSCRAPE\b|\bEXTRACT\b|\bIN\b|\bIF\b|'r'!=|==|=|;|\n|'r'"(?:[^"]*)"|\'(?:[^\']*)\'|'r'@?[A-Za-z_][A-Za-z0-9_-]*|'r'\d+)')
+        pattern = (r'(\bSELECT\b|\bSCRAPE\b|\bEXTRACT\b|\bOUTPUT\b|\bIN\b|\bIF\b|'r'!=|==|=|;|\n|'r'"(?:[^"]*)"|\'(?:[^\']*)\'|'r'@?[A-Za-z_][A-Za-z0-9_-]*|'r'\d+)')
 
         for match in re.finditer(pattern, query.replace("\n", ""), flags=re.IGNORECASE):
             raw_value = match.group(0)
@@ -81,6 +83,8 @@ class Tokenizer:
             return Token(TokenType.SEMICOLON, raw_value)
         if val_lower.isdigit():
             return Token(TokenType.NUMBER, val_lower)
+        if val_lower in self.FILE_TYPES:
+            return Token(TokenType.FILE_TYPE, val_lower)
         return Token(TokenType.IDENTIFIER, raw_value)
     
 
@@ -221,7 +225,29 @@ class ExtractParser(Parser):
                 fields.append(tokens[index].value)
             index += 1
         
-        instruction = ChurnCommand(fields=fields, flags=[])
+        instruction = ChurnCommand(fields=fields)
+        return instruction, index + 1
+    
+
+class OutputParser(Parser):
+    """
+    """
+    def __init__(self):
+        """
+        """
+        pass
+
+    def parse(self, tokens, index) -> tuple:
+        """
+        """
+        index += 1
+
+        if tokens[index].type != TokenType.FILE_TYPE:
+            raise SyntaxError(f"Expected file type at token {tokens[index]}")
+        file_type = tokens[index].value
+        index += 1
+
+        instruction = DeliverCommand(file_type=file_type)
         return instruction, index + 1
 
 
@@ -235,6 +261,7 @@ class Interpeter:
             "scrape": ScrapeSelectParser(self.condition_parser),
             "select": ScrapeSelectParser(self.condition_parser),
             "extract": ExtractParser(),
+            "output": OutputParser(),
         }
 
     def interpret(self, query: str) -> list:
