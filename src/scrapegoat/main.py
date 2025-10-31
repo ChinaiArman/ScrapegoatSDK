@@ -16,7 +16,7 @@ def main():
 
     query = """
     SCRAPE 1 table;
-    OUTPUT csv;
+    OUTPUT json --filename "banana.json" --filepath "./outputs";
     """
     results = shepherd.herd(root, query)
 
