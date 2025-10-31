@@ -1,19 +1,18 @@
 """
 """
 
+import uuid
+
 
 class HTMLNode:
     """
     """
     VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
-    _id_counter = 0
 
     def __init__(self, raw: str, tag_type: str, has_data: bool = False, html_attributes: dict[str, any] = None, body: str = "", parent=None):
         """
         """
-        self.id = HTMLNode._id_counter
-        HTMLNode._id_counter += 1
-
+        self.id = str(uuid.uuid4())
         self.raw = raw
         self.tag_type = tag_type
         self.has_data = has_data
