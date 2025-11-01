@@ -46,7 +46,10 @@ class Shepherd:
             visit_commands = [cmd for cmd in commands if cmd.action == "visit"]
             html = self.sheepdog.fetch(visit_commands[0])
 
-        root = self.pasture(html)
+        if isinstance(html, str):
+            root = self.pasture(html)
+        else:
+            root = html
 
         results = self.goat.feast(root, select_scrape_commands)
 
