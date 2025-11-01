@@ -1,5 +1,8 @@
 """
 """
+from typing import Union
+
+from .command import FetchCommand
 
 class Sheepdog:
     """
@@ -9,9 +12,11 @@ class Sheepdog:
         """
         pass
 
-    def fetch(self, fetch_command) -> str:
+    def fetch(self, fetch_command: Union[str, FetchCommand]) -> str:
         """
         """
+        if isinstance(fetch_command, str):
+            fetch_command = FetchCommand(fetch_command)
         return fetch_command.execute()
     
 

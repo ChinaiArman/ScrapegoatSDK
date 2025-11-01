@@ -33,17 +33,19 @@ class Shepherd:
         """
         pass
 
-    def herd(self, query: str) -> set:
+    def herd(self, query: str, html=None) -> set:
         """
         """
         commands = self.interpreter.interpret(query)
 
-        visit_commands = [cmd for cmd in commands if cmd.action == "visit"]
         select_scrape_commands = [cmd for cmd in commands if cmd.action in ("scrape", "select")]
         extract_commands = [cmd for cmd in commands if cmd.action == "extract"]
         output_commands = [cmd for cmd in commands if cmd.action == "output"]
 
-        html = self.sheepdog.fetch(visit_commands[0])
+        if not html:
+            visit_commands = [cmd for cmd in commands if cmd.action == "visit"]
+            html = self.sheepdog.fetch(visit_commands[0])
+
         root = self.pasture(html)
 
         results = self.goat.feast(root, select_scrape_commands)
