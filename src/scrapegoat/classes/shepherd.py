@@ -6,6 +6,7 @@ from .goat import Goat
 from .interpreter import Interpeter
 from .milkmaid import Milkmaid
 from .milkman import Milkman
+from .sheepdog import Sheepdog
 
 
 class Shepherd:
@@ -16,6 +17,7 @@ class Shepherd:
         """
         self.gardener = Gardener()
         self.interpreter = Interpeter()
+        self.sheepdog = Sheepdog()
         self.goat = Goat()
         self.milkmaid = Milkmaid()
         self.milkman = Milkman()
@@ -31,22 +33,26 @@ class Shepherd:
         """
         pass
 
-    def herd(self, root, query: str) -> set:
+    def herd(self, query: str) -> set:
         """
         """
         commands = self.interpreter.interpret(query)
 
+        visit_commands = [cmd for cmd in commands if cmd.action == "visit"]
         select_scrape_commands = [cmd for cmd in commands if cmd.action in ("scrape", "select")]
         extract_commands = [cmd for cmd in commands if cmd.action == "extract"]
-        deliver_commands = [cmd for cmd in commands if cmd.action == "output"]
+        output_commands = [cmd for cmd in commands if cmd.action == "output"]
+
+        html = self.sheepdog.fetch(visit_commands[0])
+        root = self.pasture(html)
 
         results = self.goat.feast(root, select_scrape_commands)
 
         if extract_commands:
             self.milkmaid.churn(results, extract_commands[0])
 
-        if deliver_commands:
-            self.milkman.deliver(results, deliver_commands[0])
+        if output_commands:
+            self.milkman.deliver(results, output_commands[0])
 
         return set(results)
 

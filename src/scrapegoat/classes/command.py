@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 import os
 import json
 import csv
+import requests
 
 from .conditions import InCondition
 
@@ -165,6 +166,34 @@ class DeliverCommand(Command):
         nodes_as_dicts = [node.to_dict() for node in nodes]
         with open(self.full_path, mode='w', encoding='utf-8') as jsonfile:
             json.dump(nodes_as_dicts, jsonfile, indent=4)
+
+
+class FetchCommand(Command):
+    """
+    """
+    HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Scrapegoat)",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Accept": "*/*",
+        "DNT": "1",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+    }
+    def __init__(self, url: str):
+        """
+        """
+        super().__init__(action="visit")
+        self.url = url
+    
+    def execute(self) -> str:
+        """
+        """
+        response = requests.get(self.url, headers=self.HEADERS)
+        response.raise_for_status()
+        return response.text
 
 
 def main():
