@@ -6,7 +6,7 @@ import re
 from enum import Enum, auto
 from abc import ABC, abstractmethod
 
-from .command import GrazeCommand, ChurnCommand, DeliverCommand
+from .command import GrazeCommand, ChurnCommand, DeliverCommand, FetchCommand
 from .conditions import InCondition, IfCondition
 
 
@@ -43,7 +43,7 @@ class Token:
 
 class Tokenizer:
     def __init__(self):
-        self.ACTIONS = {"select", "scrape", "extract", "output"}
+        self.ACTIONS = {"select", "scrape", "extract", "output", "visit"}
         self.CONDITIONALS = {"if", "in"}
         self.KEYWORDS = {"position"}
         self.OPERATORS = {"=", "!="}
@@ -57,7 +57,7 @@ class Tokenizer:
         tokens = []
         pattern = (
             r'(--[A-Za-z0-9_-]+|'
-            r'\bSELECT\b|\bSCRAPE\b|\bEXTRACT\b|\bOUTPUT\b|\bIN\b|\bIF\b|'
+            r'\bSELECT\b|\bSCRAPE\b|\bEXTRACT\b|\bOUTPUT\b|\bVISIT\b|\bIN\b|\bIF\b|'
             r'!=|==|=|;|\n|'
             r'"(?:[^"]*)"|\'(?:[^\']*)\'|'
             r'@?[A-Za-z_][A-Za-z0-9_-]*|'
@@ -168,7 +168,8 @@ class ConditionParser(Parser):
         index += 1
         token = tokens[index]
         if token.type != TokenType.OPERATOR:
-            raise SyntaxError(f"Expected '=' after IF {key} at {token}")
+            condition = IfCondition(key=key, value=None, negated=negated, query_tag=element)
+            return condition, index
         if token.value == "!=":
             negated = True
         index += 1
@@ -305,6 +306,34 @@ class OutputParser(Parser):
 
         instruction = DeliverCommand(file_type=file_type, **flags)
         return instruction, index + 1
+    
+
+class VisitParser(Parser):
+    """
+    """
+    def __init__(self, flag_parser: FlagParser):
+        """
+        """
+        self.flag_parser = flag_parser
+
+    def parse(self, tokens, index) -> tuple:
+        """
+        """
+        index += 1
+
+        # url
+        if tokens[index].type != TokenType.IDENTIFIER:
+            raise SyntaxError(f"Expected URL at token {tokens[index]}")
+        url = tokens[index].value
+        index += 1
+
+        # flags
+        flags = {}
+        if tokens[index].type == TokenType.FLAG:
+            flags, index = self.flag_parser.parse(tokens, index)
+
+        instruction = FetchCommand(url=url, **flags)
+        return instruction, index + 1
 
 
 class Interpeter:
@@ -315,6 +344,7 @@ class Interpeter:
         self.condition_parser = ConditionParser()
         self.flag_parser = FlagParser()
         self.action_parsers = {
+            "visit": VisitParser(self.flag_parser),
             "scrape": ScrapeSelectParser(self.condition_parser, self.flag_parser),
             "select": ScrapeSelectParser(self.condition_parser, self.flag_parser),
             "extract": ExtractParser(self.flag_parser),
