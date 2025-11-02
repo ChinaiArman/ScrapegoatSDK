@@ -4,10 +4,6 @@ from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Colla
 from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
 from importlib.resources import files
 
-TextNodes = [
-	"p", "h1", "h2", "h3", "h4", "h5", "h6", "span", "li", "a"
-]
-
 NodeAttributes = [
 	"tag_type", "id", "has_data", "body"
 ]
@@ -31,7 +27,7 @@ class NodeWrapper():
 				self.added_to_query = True
 
 				node_text = f"*<{self.node.tag_type}>"
-				if self.node.tag_type in TextNodes and len(self.node.body.strip()) > 0:
+				if len(self.node.body.strip()) > 0:
 					node_text += f" {self.node.body.strip()}"
 				self._update_branch_label(node_text)
 
@@ -39,7 +35,7 @@ class NodeWrapper():
 				self.added_to_query = False
 
 				node_text = f"<{self.node.tag_type}>"
-				if self.node.tag_type in TextNodes and len(self.node.body.strip()) > 0:
+				if len(self.node.body.strip()) > 0:
 					node_text += f" {self.node.body.strip()}"
 				self._update_branch_label(node_text)
 
@@ -80,12 +76,12 @@ class ControlPanel(VerticalGroup):
 
 	def compose(self):
 		self.node_details = {
-			"tag_type": Label("<no node selected>"),
+			"node_desc": Label("<no node selected>"),
 			"queried_attributes": HorizontalScroll()
 		}
 
 		with Collapsible(title="Node Details"):
-			yield self.node_details["tag_type"]
+			yield self.node_details["node_desc"]
 			yield self.node_details["queried_attributes"]
 
 		self.contextual_button = Button("<+>", id="node-add-remove", variant="success")
@@ -112,7 +108,7 @@ class ControlPanel(VerticalGroup):
 				self.contextual_button.label = "<+>"
 				self.contextual_button.variant = "success"
 
-			self.node_details["tag_type"].update(f"Type: <{node.tag_type}>")
+			self.node_details["node_desc"].update(f"Type: <{node.tag_type+">":<7} | ID: {node.id}")
 
 			for node_attribute in NodeAttributes:
 				index = f"node-attribute-{node.id}-{node_attribute}"
@@ -171,11 +167,14 @@ class ControlPanel(VerticalGroup):
 		text_area = self.query_one(TextArea)
 		text_area.text = text_area.text.replace(prev_instr, new_instr)
 
+	def get_query(self):
+		return self.query_one(TextArea).text
+
 class Loom(App):
 	CSS_PATH = str(files("scrapegoat").joinpath("gui-styles/tapestry.tcss"))
 	BINDINGS = [
 		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
-	] # Why doesn't this work :(
+	]
 
 	def __init__(self, root_node, **kwargs):
 		super().__init__(**kwargs)
@@ -195,7 +194,7 @@ class Loom(App):
 				continue
 
 			node_label = f"<{child.tag_type}>"
-			if child.tag_type in TextNodes and len(child.body.strip()) > 0:
+			if len(child.body.strip()) > 0:
 				node_label += f" {child.body}"
 
 			branch = tree.root if child.parent is None else self.nodes[child.parent.id].branch
@@ -212,7 +211,7 @@ class Loom(App):
 
 		return tree
 	
-	def add_remove_node(self) -> None:
+	def action_add_remove_node(self) -> None:
 		if self.control_panel and self.control_panel.current_node:
 			if self.control_panel.current_node.get_querying() == False:
 				self.control_panel.add_node()
@@ -225,7 +224,9 @@ class Loom(App):
 
 	def on_button_pressed(self, event: Button.Pressed) -> None:
 		if event.button.id == "node-add-remove":
-			self.add_remove_node()
+			self.action_add_remove_node()
+		elif event.button.id == "copy-query":
+			pass # Need to figure out copy function
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
 		if event.checkbox.value:
