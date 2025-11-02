@@ -18,3 +18,17 @@ ControlPanel {
 Label {
 	padding: 0 1 1 1;
 }
+
+FindModal {
+	layout: horizontal;
+}
+
+FindModal > Input {
+	width: 65%;
+	margin: 1;
+}
+
+FindModal > Button {
+	width: 15%;
+	margin: 1;
+}

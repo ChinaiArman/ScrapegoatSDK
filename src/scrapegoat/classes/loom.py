@@ -1,7 +1,9 @@
 from textual.app import App
+from textual.screen import ModalScreen
 from textual.binding import Binding
-from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Collapsible, Checkbox
-from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
+from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Collapsible, Checkbox, Input
+from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll, Container
+from textual.css.query import NoMatches
 from importlib.resources import files
 from platform import system
 from subprocess import Popen, PIPE
@@ -187,10 +189,28 @@ class ControlPanel(VerticalGroup):
 	def get_query(self):
 		return self.query_one(TextArea).text
 
+class FindModal(ModalScreen):
+	BINDINGS = [
+		("escape", "minimize_modal", "Exit Find")
+	]
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+
+	def compose(self):
+		yield Input(placeholder="Search...", id="find-node-input")
+		yield Button("Next", id="find-node-next", variant="primary")
+		yield Button("Prev", id="find-node-prev", variant="primary")
+
+	def action_minimize_modal(self):
+		self.app.pop_screen()
+
 class Loom(App):
 	CSS_PATH = str(files("scrapegoat").joinpath("gui-styles/tapestry.tcss"))
+	SCREENS = {"find": FindModal}
 	BINDINGS = [
 		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
+		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows/Hides the node search widget.")
 	]
 
 	def __init__(self, root_node, **kwargs):
