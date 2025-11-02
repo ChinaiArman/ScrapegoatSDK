@@ -21,46 +21,42 @@ class Shepherd:
         self.goat = Goat()
         self.milkmaid = Milkmaid()
         self.milkman = Milkman()
-
-    def pasture(self, raw_html: str):
+    
+    def herd(self, query: str, root=None) -> list:
         """
         """
-        self.gardener.grow_tree(raw_html)
-        return self.gardener.get_root()
+        goatspeak = self.interpreter.interpret_from_string(query)
+        query_obj = goatspeak.query_list[0]
+        
+        if root is None:
+            html = self.sheepdog.fetch(goatspeak.fetch_command)
+            root = self.gardener.grow_tree(html)
+        
+        results = self.goat.feast(root, query_obj.graze_commands)
 
-    def _validate_commands(self, commands: list) -> None:
+        if query_obj.churn_command:
+            self.milkmaid.churn(results, query_obj.churn_command)
+
+        if query_obj.deliver_command:
+            self.milkman.deliver(results, query_obj.deliver_command)
+
+        return list(dict.fromkeys(results))
+
+    def herd_from_file(self, file_path: str) -> None:
         """
         """
         pass
-
-    def herd(self, query: str, html=None) -> set:
+    
+    def herd_from_html(self, raw_html: str, query: str) -> list:
         """
         """
-        commands = self.interpreter.interpret(query)
-
-        select_scrape_commands = [cmd for cmd in commands if cmd.action in ("scrape", "select")]
-        extract_commands = [cmd for cmd in commands if cmd.action == "extract"]
-        output_commands = [cmd for cmd in commands if cmd.action == "output"]
-
-        if not html:
-            visit_commands = [cmd for cmd in commands if cmd.action == "visit"]
-            html = self.sheepdog.fetch(visit_commands[0])
-
-        if isinstance(html, str):
-            root = self.pasture(html)
-        else:
-            root = html
-
-        results = self.goat.feast(root, select_scrape_commands)
-
-        if extract_commands:
-            self.milkmaid.churn(results, extract_commands[0])
-
-        if output_commands:
-            self.milkman.deliver(results, output_commands[0])
-
-        return set(results)
-
+        root = self.gardener.grow_tree(raw_html)
+        return self.herd(query, root=root)
+    
+    def herd_from_node(self, root, query: str) -> list:
+        """
+        """
+        return self.herd(query, root=root)
 
 def main():
     """

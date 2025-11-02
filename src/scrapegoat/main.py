@@ -16,7 +16,8 @@ def main():
     OUTPUT csv --filename "test" --filepath "./outputs";
     """
     
-    shepherd.herd(query)
+    results = shepherd.herd(query)
+    print(results)
 
 
 if __name__ == "__main__":

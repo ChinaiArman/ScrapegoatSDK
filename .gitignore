@@ -13,3 +13,6 @@ dist
 # OUTPUT FILES
 *.csv
 *.json
+
+# INPUT FILES
+*.goat

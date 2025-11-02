@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 
 from .command import GrazeCommand, ChurnCommand, DeliverCommand, FetchCommand
 from .conditions import InCondition, IfCondition
+from .block import GoatspeakBlock, Query
 
 
 class TokenType(Enum):
@@ -334,6 +335,19 @@ class VisitParser(Parser):
 
         instruction = FetchCommand(url=url, **flags)
         return instruction, index + 1
+    
+class GoatFileParser(Parser):
+    """
+    """
+    def __init__(self):
+        """
+        """
+        pass
+
+    def parse(self, tokens, index) -> tuple:
+        """
+        """
+        pass
 
 
 class Interpeter:
@@ -343,6 +357,7 @@ class Interpeter:
         self.tokenizer = Tokenizer()
         self.condition_parser = ConditionParser()
         self.flag_parser = FlagParser()
+        self.goat_file_parser = GoatFileParser()
         self.action_parsers = {
             "visit": VisitParser(self.flag_parser),
             "scrape": ScrapeSelectParser(self.condition_parser, self.flag_parser),
@@ -351,7 +366,7 @@ class Interpeter:
             "output": OutputParser(self.flag_parser),
         }
 
-    def interpret(self, query: str) -> list:
+    def interpret_from_string(self, query: str) -> GoatspeakBlock:
         """
         """
         tokens = self.tokenizer.tokenize(query)
@@ -371,8 +386,23 @@ class Interpeter:
             instruction, index = parser.parse(tokens, index)
             instructions.append(instruction)
 
-        return instructions
+        fetch_command = next((cmd for cmd in instructions if cmd.action == "visit"), None)
+
+        graze_commands = [cmd for cmd in instructions if cmd.action in ("scrape", "select")]
+        churn_command = next((cmd for cmd in instructions if cmd.action == "extract"), None)
+        deliver_command = next((cmd for cmd in instructions if cmd.action == "output"), None)
+
+        query = Query(graze_commands=graze_commands, churn_command=churn_command, deliver_command=deliver_command)
+
+        return GoatspeakBlock(fetch_command=fetch_command, query_list=[query])
     
+    def interpret_from_file(self, query: str) -> GoatspeakBlock:
+        """
+        """
+        pass
+
+        
+
             
 def main():
     """
