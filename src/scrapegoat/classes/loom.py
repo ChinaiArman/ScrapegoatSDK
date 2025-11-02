@@ -1,7 +1,7 @@
 from textual.app import App
 from textual.screen import ModalScreen
 from textual.binding import Binding
-from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Collapsible, Checkbox, Input
+from textual.widgets import Header, Footer, Tree, Button, Static, TextArea, Collapsible, Checkbox, Input, ListView, ListItem
 from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll, Container
 from textual.css.query import NoMatches
 from importlib.resources import files
@@ -109,7 +109,7 @@ class ControlPanel(VerticalGroup):
 
 	def compose(self):
 		self.node_details = {
-			"node_desc": Label("<no node selected>"),
+			"node_desc": ListView(),
 			"queried_attributes": HorizontalScroll()
 		}
 
@@ -129,6 +129,7 @@ class ControlPanel(VerticalGroup):
 		yield TextArea("", read_only=True)
 
 	def update_node(self, node:NodeWrapper):
+		self.node_details["node_desc"].clear()
 		for child in list(self.node_details["queried_attributes"].children):
 			child.remove()
 
@@ -141,21 +142,24 @@ class ControlPanel(VerticalGroup):
 				self.contextual_button.label = "<+>"
 				self.contextual_button.variant = "success"
 
-			self.node_details["node_desc"].update(f"Type: <{node.tag_type+">":<7} | ID: {node.id}")
-
 			for node_attribute in NodeAttributes:
 				index = f"node-attribute-{node.id}-{node_attribute}"
 
 				if node.node.has_attribute(node_attribute):
+					if node_attribute != "body":
+						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {node.node.to_dict()[node_attribute]}")))
+					elif len(node.node.body) > 0:
+						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: ...")))
 					self.node_details["queried_attributes"].mount(
-						Checkbox(node_attribute, id=index, value=self.current_node.check_query_attribute(node_attribute))
+						Checkbox(f"{node_attribute}", id=index, value=self.current_node.check_query_attribute(node_attribute))
 					)
 
 			for html_attribute in node.node.html_attributes:
 				index = f"html-attribute-{node.id}-{html_attribute.replace("@", "")}"
 
+				self.node_details["node_desc"].append(ListItem(Static(f"{html_attribute}: {node.node.html_attributes[html_attribute]}")))
 				self.node_details["queried_attributes"].mount(
-					Checkbox(html_attribute, id=index, value=self.current_node.check_query_attribute(html_attribute))
+					Checkbox(f"{html_attribute}", id=index, value=self.current_node.check_query_attribute(html_attribute))
 				)
 
 			

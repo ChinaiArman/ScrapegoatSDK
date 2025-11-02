@@ -15,8 +15,8 @@ ControlPanel {
 	content-align: right middle;
 }
 
-Label {
-	padding: 0 1 1 1;
+ListItem > Static {
+	padding: 1;
 }
 
 FindModal {
@@ -31,4 +31,12 @@ FindModal > Input {
 FindModal > Button {
 	width: 15%;
 	margin: 1;
+}
+
+ListView {
+	margin: 0 1 1 1;
+}
+
+HorizontalScroll {
+	scrollbar-visibility: visible;
 }
