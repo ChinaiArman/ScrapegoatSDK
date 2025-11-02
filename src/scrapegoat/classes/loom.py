@@ -191,7 +191,7 @@ class ControlPanel(VerticalGroup):
 
 class FindModal(ModalScreen):
 	BINDINGS = [
-		("escape", "minimize_modal", "Exit Find")
+		("escape", "app.pop_screen", "Exit Find")
 	]
 
 	def __init__(self, **kwargs):
@@ -201,9 +201,6 @@ class FindModal(ModalScreen):
 		yield Input(placeholder="Search...", id="find-node-input")
 		yield Button("Next", id="find-node-next", variant="primary")
 		yield Button("Prev", id="find-node-prev", variant="primary")
-
-	def action_minimize_modal(self):
-		self.app.pop_screen()
 
 class Loom(App):
 	CSS_PATH = str(files("scrapegoat").joinpath("gui-styles/tapestry.tcss"))
@@ -218,6 +215,8 @@ class Loom(App):
 		self.sub_title = "Tree Visualizer"
 		self.root_node = root_node
 		self.nodes = {}
+		self.current_search_nodes = []
+		self.search_node_index = 0
 
 	def _create_tree_from_root_node(self, node):
 		self.nodes = {}
@@ -271,12 +270,22 @@ class Loom(App):
 			self.action_add_remove_node()
 		elif event.button.id == "copy-query":
 			write_to_clipboard(self.control_panel.get_query())
+		elif event.button.id == "find-node-next":
+			self.search_node_index += 1
+			self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
+		elif event.button.id == "find-node-prev":
+			self.search_node_index -= 1
+			self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
 		if event.checkbox.value:
 			self.control_panel.append_attribute(str(event.checkbox.label))
 		else:
 			self.control_panel.remove_attribute(str(event.checkbox.label))
+
+	def on_input_changed(self, event: Input.Changed) -> None:
+		if event.input.id == "find-node-input":
+			self.current_search_nodes = self._search_tree(event.input.value)
 
 	def compose(self):
 		yield Header(name="ScrapeGoat", icon="🐐")
