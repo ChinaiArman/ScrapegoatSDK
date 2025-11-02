@@ -3,10 +3,24 @@ from textual.binding import Binding
 from textual.widgets import Header, Footer, Tree, Button, Label, TextArea, Collapsible, Checkbox
 from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
 from importlib.resources import files
+from platform import system
+from subprocess import Popen, PIPE
 
 NodeAttributes = [
 	"tag_type", "id", "has_data", "body"
 ]
+
+def write_to_clipboard(string:str) -> None:
+	os_name = system()
+	match os_name:
+		case "Windows":
+			Popen("clip", env={'LANG': 'en_US.UTF-8'}, stdin=PIPE).communicate(string.encode("utf-8"))
+		case "Darwin":
+			Popen("pbcopy", env={'LANG': 'en_US.UTF-8'}, stdin=PIPE).communicate(string.encode("utf-8"))
+		case "Linux":
+			pass
+		case _:
+			pass
 
 class NodeWrapper():
 	def __init__(self, html_node, branch):
@@ -226,7 +240,7 @@ class Loom(App):
 		if event.button.id == "node-add-remove":
 			self.action_add_remove_node()
 		elif event.button.id == "copy-query":
-			pass # Need to figure out copy function
+			write_to_clipboard(self.control_panel.get_query())
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
 		if event.checkbox.value:
