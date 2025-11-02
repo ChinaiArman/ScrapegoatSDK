@@ -118,11 +118,11 @@ class ControlPanel(VerticalGroup):
 			yield self.node_details["queried_attributes"]
 
 		self.contextual_button = Button("<+>", id="node-add-remove", variant="success")
-		self.copy_button = Button("<📋>", id="copy-query", variant="primary")
+		self.copy_button = Button("<Copy>", id="copy-query", variant="primary")
 
 		yield HorizontalGroup(
-			HorizontalGroup(self.contextual_button, id="node-add-remove-cont"),
-			HorizontalGroup(self.copy_button, id="copy-query-cont"),
+			self.contextual_button,
+			self.copy_button,
 			id="ctrl-buttons",
 		)
 
@@ -171,7 +171,8 @@ class ControlPanel(VerticalGroup):
 
 			self.current_node.set_querying(True)
 			
-			text_area.text += self.current_node.get_retrieval_instructions() + "\n"
+			text_area.text += "\n" + self.current_node.get_retrieval_instructions()
+			text_area.text = text_area.text.strip()
 
 			self.contextual_button.label = "<->"
 			self.contextual_button.variant = "error"
@@ -189,7 +190,8 @@ class ControlPanel(VerticalGroup):
 			self.query_nodes.remove(self.current_node)
 			text_area = self.query_one(TextArea)
 			
-			text_area.text = text_area.text.replace(self.current_node.get_retrieval_instructions() + "\n", "")
+			text_area.text = text_area.text.replace(self.current_node.get_retrieval_instructions(), "")
+			text_area.text = text_area.text.strip()
 
 			self.current_node.set_querying(False)
 
@@ -225,7 +227,7 @@ class Loom(App):
 	SCREENS = {"find": FindModal}
 	BINDINGS = [
 		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
-		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows/Hides the node search widget.")
+		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows/Hides the node search widget."),
 	]
 
 	def __init__(self, root_node, **kwargs):

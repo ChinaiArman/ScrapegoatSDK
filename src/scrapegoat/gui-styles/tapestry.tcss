@@ -7,12 +7,8 @@ ControlPanel {
 	padding: 1 1 1 1;
 }
 
-#node-add-remove-cont {
-	width: 90%;
-}
-
-#copy-query-cont {
-	content-align: right middle;
+#ctrl-buttons > Button {
+	margin: 0 2 0 0;
 }
 
 ListItem > Static {
