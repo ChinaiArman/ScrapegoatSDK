@@ -32,34 +32,49 @@ class Shepherd:
         for block in goatspeak:
             html = self.sheepdog.fetch(block.fetch_command)
             root = self.gardener.grow_tree(html)
-
-            for query in block.query_list:
-                query_results = (self.goat.feast(root, query.graze_commands))
-                if query.churn_command:
-                    self.milkmaid.churn(query_results, query.churn_command)
-
-                if query.deliver_command:
-                    self.milkman.deliver(query_results, query.deliver_command)
-
-                results.extend(query_results)
+            results.extend(self._query_list_handler(block.query_list, root))
 
         return list(dict.fromkeys(results))
+    
+    def _query_list_handler(self, query_list: str, root) -> list:
+        """
+        """
+        for query in query_list:
+            query_results = (self.goat.feast(root, query.graze_commands))
+            if query.churn_command:
+                self.milkmaid.churn(query_results, query.churn_command)
 
-    def herd_from_file(self, file_path: str) -> None:
+            if query.deliver_command:
+                self.milkman.deliver(query_results, query.deliver_command)
+        return query_results
+        
+    def _local_herd(self, query: str, root) -> list:
         """
         """
-        pass
+        goatspeak = self.interpreter.interpret(query)
+
+        results = []
+
+        for block in goatspeak:
+            results.extend(self._query_list_handler(block.query_list, root))
+                
+        return list(dict.fromkeys(results))
+    
+    def herd_from_node(self, query: str, root) -> list:
+        """
+        """
+        return self._local_herd(query, root=root)
     
     def herd_from_html(self, query: str, html: str) -> list:
         """
         """
         root = self.gardener.grow_tree(html)
-        return self.herd(query, root=root)
+        return self._local_herd(query, root=root)
     
     def herd_from_node(self, query: str, root) -> list:
         """
         """
-        return self.herd(query, root=root)
+        return self._local_herd(query, root=root)
 
 def main():
     """
