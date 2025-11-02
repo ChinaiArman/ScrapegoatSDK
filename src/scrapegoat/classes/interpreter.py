@@ -366,11 +366,55 @@ class Interpeter:
             "output": OutputParser(self.flag_parser),
         }
 
-    def interpret_from_string(self, query: str) -> GoatspeakBlock:
+    def _manage_interpreter_state(self, instructions, queries, goatspeak_blocks) -> tuple:
+        """
+        """
+        if instructions and instructions[-1].action == "visit":
+            fetch_command = instructions[-1]
+            if not goatspeak_blocks or goatspeak_blocks[-1].fetch_command != fetch_command:
+                queries = []
+                goatspeak_blocks.append(
+                    GoatspeakBlock(fetch_command=fetch_command, query_list=queries.copy())
+                )
+            return instructions, queries, goatspeak_blocks
+
+        if len(instructions) >= 2 and instructions[-2].action in ("scrape", "extract", "output") and instructions[-1].action in ("scrape", "select", "visit"):
+            current_instructions = instructions[:-1]
+
+            fetch_command = next((cmd for cmd in current_instructions if cmd.action == "visit"), None)
+            graze_commands = [cmd for cmd in current_instructions if cmd.action in ("scrape", "select")]
+            churn_command = next((cmd for cmd in current_instructions if cmd.action == "extract"), None)
+            deliver_command = next((cmd for cmd in current_instructions if cmd.action == "output"), None)
+
+            query = Query(
+                graze_commands=graze_commands,
+                fetch_command=fetch_command,
+                churn_command=churn_command,
+                deliver_command=deliver_command,
+            )
+
+            queries.append(query)
+            instructions = instructions[-1:]
+
+            if not goatspeak_blocks:
+                goatspeak_blocks.append(GoatspeakBlock(fetch_command=fetch_command, query_list=queries.copy()))
+            else:
+                last_block = goatspeak_blocks[-1]
+                if last_block.fetch_command != fetch_command:
+                    queries = [query]
+                    goatspeak_blocks.append(GoatspeakBlock(fetch_command=fetch_command, query_list=queries.copy()))
+                else:
+                    last_block.query_list.append(query)
+
+        return instructions, queries, goatspeak_blocks
+                
+    def interpret(self, query: str) -> list[GoatspeakBlock]:
         """
         """
         tokens = self.tokenizer.tokenize(query)
         instructions = []
+        queries = []
+        goatspeak_blocks = []
         index = 0
 
         while index < len(tokens):
@@ -385,23 +429,31 @@ class Interpeter:
             
             instruction, index = parser.parse(tokens, index)
             instructions.append(instruction)
+            instructions, queries, goatspeak_blocks = self._manage_interpreter_state(instructions, queries, goatspeak_blocks)
 
-        fetch_command = next((cmd for cmd in instructions if cmd.action == "visit"), None)
+        if instructions:
+            fetch_command = next((cmd for cmd in instructions if cmd.action == "visit"), None)
+            graze_commands = [cmd for cmd in instructions if cmd.action in ("scrape", "select")]
+            churn_command = next((cmd for cmd in instructions if cmd.action == "extract"), None)
+            deliver_command = next((cmd for cmd in instructions if cmd.action == "output"), None)
 
-        graze_commands = [cmd for cmd in instructions if cmd.action in ("scrape", "select")]
-        churn_command = next((cmd for cmd in instructions if cmd.action == "extract"), None)
-        deliver_command = next((cmd for cmd in instructions if cmd.action == "output"), None)
+            query = Query(
+                graze_commands=graze_commands,
+                fetch_command=fetch_command,
+                churn_command=churn_command,
+                deliver_command=deliver_command,
+            )
 
-        query = Query(graze_commands=graze_commands, churn_command=churn_command, deliver_command=deliver_command)
-
-        return GoatspeakBlock(fetch_command=fetch_command, query_list=[query])
-    
-    def interpret_from_file(self, query: str) -> GoatspeakBlock:
-        """
-        """
-        pass
-
-        
+            if not goatspeak_blocks:
+                goatspeak_blocks.append(GoatspeakBlock(fetch_command=fetch_command, query_list=[query]))
+            else:
+                last_block = goatspeak_blocks[-1]
+                if last_block.fetch_command != fetch_command:
+                    queries = [query]
+                    goatspeak_blocks.append(GoatspeakBlock(fetch_command=fetch_command, query_list=queries.copy()))
+                else:
+                    last_block.query_list.append(query)
+        return goatspeak_blocks
 
             
 def main():

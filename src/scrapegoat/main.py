@@ -14,10 +14,12 @@ def main():
     SCRAPE p;
     EXTRACT id, body;
     OUTPUT csv --filename "test" --filepath "./outputs";
+    SCRAPE a;
+    EXTRACT id, body;
+    OUTPUT json --filename "links" --filepath "./outputs";
     """
     
-    results = shepherd.herd(query)
-    print(results)
+    shepherd.herd(query)
 
 
 if __name__ == "__main__":

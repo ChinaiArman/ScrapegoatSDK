@@ -25,20 +25,24 @@ class Shepherd:
     def herd(self, query: str, root=None) -> list:
         """
         """
-        goatspeak = self.interpreter.interpret_from_string(query)
-        query_obj = goatspeak.query_list[0]
-        
-        if root is None:
-            html = self.sheepdog.fetch(goatspeak.fetch_command)
-            root = self.gardener.grow_tree(html)
-        
-        results = self.goat.feast(root, query_obj.graze_commands)
+        goatspeak = self.interpreter.interpret(query)
 
-        if query_obj.churn_command:
-            self.milkmaid.churn(results, query_obj.churn_command)
+        results = []
 
-        if query_obj.deliver_command:
-            self.milkman.deliver(results, query_obj.deliver_command)
+        for block in goatspeak:
+            if root is None:
+                html = self.sheepdog.fetch(block.fetch_command)
+                root = self.gardener.grow_tree(html)
+
+            for query in block.query_list:
+                query_results = (self.goat.feast(root, query.graze_commands))
+                if query.churn_command:
+                    self.milkmaid.churn(query_results, query.churn_command)
+
+                if query.deliver_command:
+                    self.milkman.deliver(query_results, query.deliver_command)
+
+                results.extend(query_results)
 
         return list(dict.fromkeys(results))
 
@@ -47,13 +51,13 @@ class Shepherd:
         """
         pass
     
-    def herd_from_html(self, raw_html: str, query: str) -> list:
+    def herd_from_html(self, query: str, html: str) -> list:
         """
         """
-        root = self.gardener.grow_tree(raw_html)
+        root = self.gardener.grow_tree(html)
         return self.herd(query, root=root)
     
-    def herd_from_node(self, root, query: str) -> list:
+    def herd_from_node(self, query: str, root) -> list:
         """
         """
         return self.herd(query, root=root)
