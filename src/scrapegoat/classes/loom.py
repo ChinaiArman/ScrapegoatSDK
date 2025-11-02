@@ -84,8 +84,22 @@ class NodeWrapper():
 	def check_query_attribute(self, attribute) -> bool:
 		return attribute in self.extract_attributes
 	
-	def __contains__(self, item) -> bool:
-		return str(item).lower() in self.node.to_html().lower()
+	def __contains__(self, item) -> bool:	
+		if item in f"<{self.tag_type}>":
+			return True
+		
+		if item in self.node.body:
+			return True
+		
+		for html_attribute in self.node.html_attributes.keys():
+			if item in f"@{html_attribute}={self.node.html_attributes[html_attribute]}":
+				return True
+			
+		for node_attribute in NodeAttributes:
+			if item in f"#{node_attribute}={self.node.to_dict()[node_attribute]}":
+				return True
+		
+		return False
 
 class ControlPanel(VerticalGroup):
 	def __init__(self, **kwargs):
@@ -271,11 +285,19 @@ class Loom(App):
 		elif event.button.id == "copy-query":
 			write_to_clipboard(self.control_panel.get_query())
 		elif event.button.id == "find-node-next":
-			self.search_node_index += 1
-			self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
+			if len(self.current_search_nodes) > 0:
+				self.search_node_index += 1
+				if self.search_node_index >= len(self.current_search_nodes):
+					self.search_node_index = 0
+
+				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 		elif event.button.id == "find-node-prev":
-			self.search_node_index -= 1
-			self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
+			if len(self.current_search_nodes) > 0:
+				self.search_node_index -= 1
+				if self.search_node_index < 0:
+					self.search_node_index = len(self.current_search_nodes) - 1
+
+				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
 		if event.checkbox.value:
@@ -286,6 +308,9 @@ class Loom(App):
 	def on_input_changed(self, event: Input.Changed) -> None:
 		if event.input.id == "find-node-input":
 			self.current_search_nodes = self._search_tree(event.input.value)
+			if len(self.current_search_nodes) > 0:
+				self.search_node_index = 0
+				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def compose(self):
 		yield Header(name="ScrapeGoat", icon="🐐")
