@@ -3,7 +3,7 @@
 
 # IMPORTS
 from html.parser import HTMLParser
-from .html_node import HTMLNode
+from .node import HTMLNode
 
 
 class Gardener(HTMLParser):
@@ -127,7 +127,7 @@ class Gardener(HTMLParser):
 
         wrapped_html = self._append_root_tag(raw_html)
         self.feed(wrapped_html)
-        return
+        return self.root
 
     def get_root(self) -> HTMLNode:
         """

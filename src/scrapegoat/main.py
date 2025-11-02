@@ -1,29 +1,26 @@
 """
 """
 
-from scrapegoat import Shepherd, Sheepdog, Loom
+from scrapegoat import Shepherd
 
 
 def main():
     """
     """
-    sheepdog = Sheepdog()
-
-    html = sheepdog.fetch("https://en.wikipedia.org/wiki/Web_scraping")
-    
     shepherd = Shepherd()
-    root = shepherd.pasture(html)
-
-    Loom(root).weave()
 
     query = """
-    SELECT table;
-    SCRAPE a IF @href='/wiki/Help:Maintenance_template_removal';
-    EXTRACT @href, @title;
+    VISIT "https://en.wikipedia.org/wiki/Web_scraping";
+    SCRAPE p;
+    EXTRACT id, body;
+    OUTPUT csv --filename "test1" --filepath "./outputs";
+    VISIT "https://en.wikipedia.org/wiki/Dog";
+    SCRAPE p;
+    EXTRACT id, body;
+    OUTPUT csv --filename "test2" --filepath "./outputs";
     """
-    results = shepherd.herd(root, query)
-
-    print([result.to_dict() for result in results])
+    
+    shepherd.herd(query)
 
 
 if __name__ == "__main__":

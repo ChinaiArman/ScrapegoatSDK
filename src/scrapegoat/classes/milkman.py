@@ -12,7 +12,14 @@ class Milkman:
     def deliver(self, results: list, deliver_command) -> None:
         """
         """
-        pass
+        deliver_command.execute(results)
+        return
+    
+    def receive(self, filepath) -> str:
+        """
+        """
+        with open(filepath, "r", encoding="utf-8") as f:
+            return f.read()
 
 
 def main():
