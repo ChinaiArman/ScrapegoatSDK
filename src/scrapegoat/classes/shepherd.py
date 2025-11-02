@@ -22,7 +22,7 @@ class Shepherd:
         self.milkmaid = Milkmaid()
         self.milkman = Milkman()
     
-    def herd(self, query: str, root=None) -> list:
+    def herd(self, query: str) -> list:
         """
         """
         goatspeak = self.interpreter.interpret(query)
@@ -30,9 +30,8 @@ class Shepherd:
         results = []
 
         for block in goatspeak:
-            if root is None:
-                html = self.sheepdog.fetch(block.fetch_command)
-                root = self.gardener.grow_tree(html)
+            html = self.sheepdog.fetch(block.fetch_command)
+            root = self.gardener.grow_tree(html)
 
             for query in block.query_list:
                 query_results = (self.goat.feast(root, query.graze_commands))

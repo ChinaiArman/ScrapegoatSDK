@@ -194,6 +194,11 @@ class FetchCommand(Command):
         response = requests.get(self.url, headers=self.HEADERS)
         response.raise_for_status()
         return response.text
+    
+    def __eq__(self, other):
+        """
+        """
+        return isinstance(other, FetchCommand) and self.url == other.url
 
 
 def main():
