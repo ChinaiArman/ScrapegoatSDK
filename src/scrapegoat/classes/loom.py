@@ -35,7 +35,7 @@ class NodeWrapper():
 		self.branch.label = new_label
 		self.branch.refresh()
 
-	def setQuerying(self, value:bool):
+	def set_querying(self, value:bool):
 		if self.added_to_query != value:
 			if value == True:
 				self.added_to_query = True
@@ -81,6 +81,9 @@ class NodeWrapper():
 
 	def check_query_attribute(self, attribute) -> bool:
 		return attribute in self.extract_attributes
+	
+	def __contains__(self, item) -> bool:
+		return str(item).lower() in self.node.to_html().lower()
 
 class ControlPanel(VerticalGroup):
 	def __init__(self, **kwargs):
@@ -146,7 +149,7 @@ class ControlPanel(VerticalGroup):
 			self.query_nodes.append(self.current_node)
 			text_area = self.query_one(TextArea)
 
-			self.current_node.setQuerying(True)
+			self.current_node.set_querying(True)
 			
 			text_area.text += self.current_node.get_retrieval_instructions() + "\n"
 
@@ -168,7 +171,7 @@ class ControlPanel(VerticalGroup):
 			
 			text_area.text = text_area.text.replace(self.current_node.get_retrieval_instructions() + "\n", "")
 
-			self.current_node.setQuerying(False)
+			self.current_node.set_querying(False)
 
 			self.contextual_button.label = "<+>"
 			self.contextual_button.variant = "success"
@@ -224,6 +227,13 @@ class Loom(App):
 			self.nodes[child.id] = NodeWrapper(child, child_branch)
 
 		return tree
+	
+	def _search_tree(self, search_string:str) -> list[NodeWrapper]:
+		return_list = []
+		for node in self.nodes.values():
+			if search_string in node:
+				return_list.append(node)
+		return return_list
 	
 	def action_add_remove_node(self) -> None:
 		if self.control_panel and self.control_panel.current_node:
