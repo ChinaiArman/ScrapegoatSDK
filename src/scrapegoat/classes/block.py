@@ -4,17 +4,21 @@
 class GoatspeakBlock:
     """
     """
-    def __init__(self, fetch_command, query_list, output_command=None):
+    def __init__(self, fetch_command, query_list):
         """
         """
         self.fetch_command = fetch_command
         self.query_list = query_list
-        self.output_command = output_command
 
     def __repr__(self):
         """
         """
-        return f"GoatspeakBlock(fetch_command={self.fetch_command}, query_list={self.query_list}, output_command={self.output_command})"
+        return f"GoatspeakBlock(fetch_command={self.fetch_command}, query_list={self.query_list})"
+    
+    def to_goat_file(self) -> None:
+        """
+        """
+        pass
 
 
 class Query:
