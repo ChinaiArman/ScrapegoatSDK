@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scrapegoat-loom"
+version = "1.1.0"
+description = "A subpackage of scrapegoat used to visualize the DOM tree and build Goatspeak queries."
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { file = "LICENSE" }
+authors = [
+  { name = "Quinn Thompson", email = "q.thompson088@gmail.com" },
+]
+requires-python = ">=3.12"
+
+dependencies = [
+  "textual>=6.2.1",
+  "scrapegoat>=1.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ChinaiArman/scrapegoat"
+Documentation = "https://github.com/ChinaiArman/scrapegoat/blob/main/README.md"
+Source = "https://github.com/ChinaiArman/scrapegoat"
+Issues = "https://github.com/ChinaiArman/scrapegoat/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"scrapegoat_loom" = ["gui-styles/*"]

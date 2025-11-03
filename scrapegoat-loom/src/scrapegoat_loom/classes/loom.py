@@ -279,7 +279,7 @@ class FindModal(ModalScreen):
 		yield Button("Prev", id="find-node-prev", variant="primary")
 
 class Loom(App):
-	CSS_PATH = str(files("scrapegoat").joinpath("gui-styles/tapestry.tcss"))
+	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
 	SCREENS = {"find": FindModal}
 	BINDINGS = [
 		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),

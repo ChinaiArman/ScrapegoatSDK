@@ -1,18 +1,4 @@
-# PYTHON
-__pycache__/
-build
-dist
-.venv
-
-# GIT
-.git
-
-# SDK
-*.egg-info
-
-# OUTPUT FILES
+# FILES
 *.csv
 *.json
-
-# INPUT FILES
 *.goat

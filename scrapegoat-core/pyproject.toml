@@ -14,8 +14,7 @@ authors = [
 requires-python = ">=3.12"
 
 dependencies = [
-  "textual>=6.2.1",
-  "requests>=2.31.0",
+  "requests>=2.31.0"
 ]
 
 [project.urls]
@@ -30,5 +29,5 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-"scrapegoat" = ["gui-styles/*"]
+[project.optional-dependencies]
+loom = ["scrapegoat-loom>=1.1.0"]
