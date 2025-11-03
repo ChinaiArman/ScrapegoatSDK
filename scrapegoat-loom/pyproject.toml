@@ -18,6 +18,14 @@ dependencies = [
   "scrapegoat>=1.1.0",
 ]
 
+keywords = ["scraping", "visualizer", "textual", "cli", "dom"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License"
+]
+
 [project.urls]
 Homepage = "https://github.com/ChinaiArman/scrapegoat"
 Documentation = "https://github.com/ChinaiArman/scrapegoat/blob/main/README.md"
