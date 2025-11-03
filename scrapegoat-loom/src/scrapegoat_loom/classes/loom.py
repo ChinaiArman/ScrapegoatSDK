@@ -1,12 +1,14 @@
-from textual.app import App
+from textual.app import App, SystemCommand
 from textual.screen import ModalScreen
 from textual.binding import Binding
 from textual.widgets import Header, Footer, Tree, Button, Static, TextArea, Collapsible, Checkbox, Input, ListView, ListItem
-from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll, Container
-from textual.css.query import NoMatches
+from textual.widgets.tree import TreeNode
+from textual.containers import HorizontalGroup, VerticalGroup, HorizontalScroll
 from importlib.resources import files
 from platform import system
 from subprocess import Popen, PIPE
+
+from scrapegoat import Gardener, Sheepdog, HTMLNode
 
 NodeAttributes = (
 	"tag_type", "id", "has_data", "body", "parent", "children"
@@ -29,7 +31,7 @@ def write_to_clipboard(string:str) -> None:
 			pass
 
 class NodeWrapper():
-	def __init__(self, html_node, branch):
+	def __init__(self, html_node: HTMLNode, branch: TreeNode):
 		self.id = html_node.id
 		self.tag_type = html_node.tag_type
 		self.node = html_node
@@ -38,11 +40,11 @@ class NodeWrapper():
 		self.extract_attributes = []
 		self.flags = []
 
-	def _update_branch_label(self, new_label:str):
+	def _update_branch_label(self, new_label: str):
 		self.branch.label = new_label
 		self.branch.refresh()
 
-	def set_querying(self, value:bool):
+	def set_querying(self, value: bool):
 		if self.added_to_query != value:
 			if value == True:
 				self.added_to_query = True
@@ -89,29 +91,32 @@ class NodeWrapper():
 
 		return instructions + ";"
 	
-	def append_attribute(self, attribute_name) -> None:
+	def append_attribute(self, attribute_name: str) -> None:
 		if attribute_name not in self.extract_attributes:
 			self.extract_attributes.append(attribute_name)
 
-	def append_flag(self, flag) -> None:
+	def append_flag(self, flag: str) -> None:
 		if flag not in self.flags:
 			self.flags.append(flag)
 
-	def remove_attribute(self, attribute_name) -> None:
+	def remove_attribute(self, attribute_name: str) -> None:
 		if attribute_name in self.extract_attributes:
 			self.extract_attributes.remove(attribute_name)
 
-	def remove_flag(self, flag) -> None:
+	def remove_flag(self, flag: str) -> None:
 		if flag in self.flags:
 			self.flags.remove(flag)
 
-	def check_query_attribute(self, attribute) -> bool:
+	def check_query_attribute(self, attribute: str) -> bool:
 		return attribute in self.extract_attributes
 	
-	def check_flag(self, flag) -> bool:
+	def check_flag(self, flag: str) -> bool:
 		return flag in self.flags
 	
-	def __contains__(self, item) -> bool:	
+	def __contains__(self, item) -> bool:
+		if type(item) != "str":
+			return False
+
 		if item in f"<{self.tag_type}>":
 			return True
 		
@@ -157,7 +162,7 @@ class ControlPanel(VerticalGroup):
 
 		yield TextArea("", read_only=True)
 
-	def update_node(self, node:NodeWrapper):
+	def update_node(self, node: NodeWrapper):
 		self.node_details["node_desc"].clear()
 		for child in list(self.node_details["queried_attributes"].children):
 			child.remove()
@@ -264,10 +269,15 @@ class ControlPanel(VerticalGroup):
 
 	def get_query(self):
 		return self.query_one(TextArea).text
+	
+	def reset(self):
+		self.current_node = None
+		self.query_nodes = []
+		self.query_one(TextArea).text = ""
 
 class FindModal(ModalScreen):
 	BINDINGS = [
-		("escape", "app.pop_screen", "Exit Find")
+		("escape", "app.pop_screen", "Exit")
 	]
 
 	def __init__(self, **kwargs):
@@ -278,23 +288,59 @@ class FindModal(ModalScreen):
 		yield Button("Next", id="find-node-next", variant="primary")
 		yield Button("Prev", id="find-node-prev", variant="primary")
 
-class Loom(App):
-	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
-	SCREENS = {"find": FindModal}
+class SetURLModal(ModalScreen):
 	BINDINGS = [
-		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
-		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows/Hides the node search widget."),
+		("escape", "app.pop_screen", "Exit")
 	]
 
-	def __init__(self, root_node, **kwargs):
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.prev_url = ""
+		self.curr_url = ""
+		self.button = Button("Visit", id="url-confirm", variant="error")
+
+	def compose(self):
+		yield Input(placeholder="https://www.example.com/data", id="url-input")
+		yield self.button
+	
+	def on_button_pressed(self, _):
+		self.prev_url = self.curr_url
+		self.button.variant = "error"
+		self.app.pop_screen()
+
+	def on_input_changed(self, event: Input.Changed):
+		self.curr_url = event.input.value
+
+		if self.curr_url == self.prev_url:
+			self.button.variant = "error"
+		else:
+			self.button.variant = "success"
+
+class Loom(App):
+	CSS_PATH = str(files("scrapegoat_loom").joinpath("gui-styles/tapestry.tcss"))
+	SCREENS = {"find": FindModal, "set-url": SetURLModal}
+	BINDINGS = [
+		Binding("ctrl+n", "add_remove_node", "Add/Remove Node", priority=True, tooltip="Adds or removes the selected node."),
+		Binding("ctrl+f", "push_screen('find')", "Search Tree", tooltip="Shows the node search widget."),
+		Binding("ctrl+u", "toggle_set_url", "Set URL", tooltip="Shows the URL input widget.")
+	]
+
+	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 		self.sub_title = "Tree Visualizer"
-		self.root_node = root_node
+		self.prev_url = ""
+		self.url = ""
+		self.has_tree = False
 		self.nodes = {}
 		self.current_search_nodes = []
 		self.search_node_index = 0
 
-	def _create_tree_from_root_node(self, node):
+	def get_system_commands(self, screen):
+		yield from super().get_system_commands(screen)
+		yield SystemCommand("Find", "Shows/Hides the node search widget.", self.toggle_search)
+		yield SystemCommand("Set URL", "Sets the URL for the Tree Visualizer to pull from.", self.action_toggle_set_url)
+
+	def _create_tree_from_root_node(self, node) -> Tree:
 		self.nodes = {}
 		tree = None
 
@@ -323,6 +369,12 @@ class Loom(App):
 
 		return tree
 	
+	def _create_placeholder_tree(self) -> Tree:
+		tree = Tree("<No URL Set>")
+		tree.root.allow_expand = False
+
+		return tree
+	
 	def _search_tree(self, search_string:str) -> list[NodeWrapper]:
 		return_list = []
 		for node in self.nodes.values():
@@ -331,61 +383,96 @@ class Loom(App):
 		return return_list
 	
 	def action_add_remove_node(self) -> None:
-		if self.control_panel and self.control_panel.current_node:
-			if self.control_panel.current_node.get_querying() == False:
-				self.control_panel.add_node()
-			else:
-				self.control_panel.remove_node()
+		if self.has_tree:
+			if self.control_panel and self.control_panel.current_node:
+				if self.control_panel.current_node.get_querying() == False:
+					self.control_panel.add_node()
+				else:
+					self.control_panel.remove_node()
+
+	def toggle_search(self) -> None:
+		self.push_screen("find")
+
+	def action_toggle_set_url(self) -> None:
+		self.push_screen("set-url")
+
+	def update_url(self) -> None:
+		if self.url == self.prev_url:
+			return
+
+		try:
+			html = Sheepdog().fetch(self.url)
+			root = Gardener().grow_tree(html)
+
+			prev_tree = self.query_one(Tree)
+			new_tree = self._create_tree_from_root_node(root)
+
+			prev_tree.root = new_tree.root
+			self.has_tree = True
+			self.control_panel.reset()
+			self.prev_url = self.url
+			self.control_panel.update_node(self.nodes[new_tree.root._html_node_id])
+		except:
+			pass # TODO: Add error popup (Toast?)
 
 	def on_tree_node_highlighted(self, event: Tree.NodeHighlighted) -> None:
-		if self.control_panel:
-			self.control_panel.update_node(self.nodes.get(event.node._html_node_id, None))
+		if self.has_tree:
+			if self.control_panel:
+				self.control_panel.update_node(self.nodes.get(event.node._html_node_id, None))
 
 	def on_button_pressed(self, event: Button.Pressed) -> None:
-		if event.button.id == "node-add-remove":
-			self.action_add_remove_node()
-		elif event.button.id == "copy-query":
-			write_to_clipboard(self.control_panel.get_query())
-		elif event.button.id == "find-node-next":
-			if len(self.current_search_nodes) > 0:
-				self.search_node_index += 1
-				if self.search_node_index >= len(self.current_search_nodes):
-					self.search_node_index = 0
+		if event.button.id == "url-confirm":
+			self.update_url()
 
-				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
-		elif event.button.id == "find-node-prev":
-			if len(self.current_search_nodes) > 0:
-				self.search_node_index -= 1
-				if self.search_node_index < 0:
-					self.search_node_index = len(self.current_search_nodes) - 1
+		if self.has_tree:
+			if event.button.id == "node-add-remove":
+				self.action_add_remove_node()
+			elif event.button.id == "copy-query":
+				write_to_clipboard(self.control_panel.get_query())
+			elif event.button.id == "find-node-next":
+				if len(self.current_search_nodes) > 0:
+					self.search_node_index += 1
+					if self.search_node_index >= len(self.current_search_nodes):
+						self.search_node_index = 0
 
-				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
+					self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
+			elif event.button.id == "find-node-prev":
+				if len(self.current_search_nodes) > 0:
+					self.search_node_index -= 1
+					if self.search_node_index < 0:
+						self.search_node_index = len(self.current_search_nodes) - 1
+
+					self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
-		if "flag" == event.checkbox.id[0:4]:
-			if event.checkbox.value:
-				self.control_panel.append_flag(str(event.checkbox.label))
-			else:
-				self.control_panel.remove_flag(str(event.checkbox.label))
-		elif "html-attribute" == event.checkbox.id[0:14] or "node-attribute" == event.checkbox.id[0:14]:
-			if event.checkbox.value:
-				self.control_panel.append_attribute(str(event.checkbox.label))
-			else:
-				self.control_panel.remove_attribute(str(event.checkbox.label))
+		if self.has_tree:
+			if "flag" == event.checkbox.id[0:4]:
+				if event.checkbox.value:
+					self.control_panel.append_flag(str(event.checkbox.label))
+				else:
+					self.control_panel.remove_flag(str(event.checkbox.label))
+			elif "html-attribute" == event.checkbox.id[0:14] or "node-attribute" == event.checkbox.id[0:14]:
+				if event.checkbox.value:
+					self.control_panel.append_attribute(str(event.checkbox.label))
+				else:
+					self.control_panel.remove_attribute(str(event.checkbox.label))
 
 	def on_input_changed(self, event: Input.Changed) -> None:
-		if event.input.id == "find-node-input":
-			self.current_search_nodes = self._search_tree(event.input.value)
-			if len(self.current_search_nodes) > 0:
-				self.search_node_index = 0
-				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
+		if event.input.id == "url-input":
+			self.url = event.input.value
+
+		if self.has_tree:
+			if event.input.id == "find-node-input":
+				self.current_search_nodes = self._search_tree(event.input.value)
+				if len(self.current_search_nodes) > 0:
+					self.search_node_index = 0
+					self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def compose(self):
 		yield Header(name="ScrapeGoat", icon="🐐")
-		dom_tree = self._create_tree_from_root_node(self.root_node)
+		dom_tree = self._create_placeholder_tree()
 		ctrl = ControlPanel()
 		self.control_panel = ctrl
-		dom_tree.control_panel = ctrl
 
 		yield dom_tree
 		yield ctrl

@@ -32,3 +32,17 @@ FindModal > Button {
 ListView {
 	margin: 0 1 1 1;
 }
+
+SetURLModal {
+	layout: horizontal;
+}
+
+SetURLModal > Input {
+	width: 70%;
+	margin: 1;
+}
+
+SetURLModal > Button {
+	width: 15%;
+	margin: 1;
+}

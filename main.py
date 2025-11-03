@@ -23,10 +23,7 @@ def main():
 
     # shepherd.herd("example.goat")
 
-
-    html = Sheepdog().fetch("https://en.wikipedia.org/wiki/Web_scraping")
-    root = Gardener().grow_tree(html)
-    Loom(root).weave()
+    Loom().weave()
 
 
 if __name__ == "__main__":
