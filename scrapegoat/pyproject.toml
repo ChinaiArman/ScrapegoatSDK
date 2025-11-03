@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0.0", "wheel"]
+requires = ["setuptools>=80.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,7 @@ name = "scrapegoat"
 version = "1.1.0"
 description = "A toolkit of functions, classes, and utilities for creating web scrapers."
 readme = { file = "README.md", content-type = "text/markdown" }
-license = { file = "LICENSE" }
+license = { text = "MIT" }
 authors = [
   { name = "Arman Chinai", email = "chinaiarman@gmail.com" }
 ]
@@ -17,15 +17,7 @@ dependencies = [
   "requests>=2.31.0"
 ]
 
-keywords = ["scraping", "web-scraping", "automation", "html", "parsing"]
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
-  "Operating System :: OS Independent",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Topic :: Software Development :: Libraries :: Python Modules"
-]
+keywords = ["scraping", "webscraping", "automation", "html", "parsing"]
 
 [project.urls]
 Homepage = "https://github.com/ChinaiArman/scrapegoat"
