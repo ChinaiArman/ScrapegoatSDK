@@ -71,9 +71,11 @@ class Shepherd:
         root = self.gardener.grow_tree(html)
         return self._local_herd(query, root=root)
     
-    def herd_from_node(self, query: str, root) -> list:
+    def herd_from_url(self, query: str, url: str) -> list:
         """
         """
+        html = self.sheepdog.fetch(url)
+        root = self.gardener.grow_tree(html)
         return self._local_herd(query, root=root)
 
 def main():

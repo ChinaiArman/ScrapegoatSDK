@@ -2,6 +2,7 @@
 """
 
 from scrapegoat import Shepherd
+from scrapegoat import Gardener, Loom, Sheepdog
 
 
 def main():
@@ -19,8 +20,13 @@ def main():
     EXTRACT id, body;
     OUTPUT csv --filename "test2" --filepath "./outputs";
     """
-    
+
     shepherd.herd(query)
+
+
+    # html = Sheepdog().fetch("https://en.wikipedia.org/wiki/Web_scraping")
+    # root = Gardener().grow_tree(html)
+    # Loom(root).weave()
 
 
 if __name__ == "__main__":
