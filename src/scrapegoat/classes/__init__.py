@@ -9,6 +9,6 @@ from .command import Command, GrazeCommand, ChurnCommand, DeliverCommand, FetchC
 from .shepherd import Shepherd
 from .sheepdog import Sheepdog
 from .loom import Loom
-from .block import GoatspeakBlock, Query, BlockBuilder
+from .block import GoatspeakBlock, Query
 
-__all__ = ["Goat", "HTMLNode", "Condition", "InCondition", "IfCondition", "Gardener", "Interpeter", "Command", "GrazeCommand", "ChurnCommand", "DeliverCommand", "Shepherd", "Sheepdog", "Loom", "TokenType", "Token", "Tokenizer", "Parser", "ConditionParser", "ScrapeSelectParser", "ExtractParser", "Milkmaid", "Milkman", "FetchCommand", "VisitParser", "FlagParser", "GoatspeakBlock", "Query", "BlockBuilder"]
+__all__ = ["Goat", "HTMLNode", "Condition", "InCondition", "IfCondition", "Gardener", "Interpeter", "Command", "GrazeCommand", "ChurnCommand", "DeliverCommand", "Shepherd", "Sheepdog", "Loom", "TokenType", "Token", "Tokenizer", "Parser", "ConditionParser", "ScrapeSelectParser", "ExtractParser", "Milkmaid", "Milkman", "FetchCommand", "VisitParser", "FlagParser", "GoatspeakBlock", "Query"]

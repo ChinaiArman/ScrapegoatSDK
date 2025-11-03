@@ -38,15 +38,6 @@ class Query:
         return f"Query(graze_commands={self.graze_commands}, fetch_command={self.fetch_command}, churn_command={self.churn_command}, deliver_command={self.deliver_command})"
 
 
-class BlockBuilder:
-    """
-    """
-    def __init__(self, gardener):
-        """
-        """
-        pass
-
-
 def main():
     """
     """
