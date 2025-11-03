@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0.3"]
+requires = ["setuptools>=77.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -17,12 +17,14 @@ dependencies = [
   "requests>=2.31.0"
 ]
 
-keywords = ["scraping", "visualizer", "textual", "cli", "dom"]
+keywords = ["scraping", "web-scraping", "automation", "html", "parsing"]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License"
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 
 [project.urls]

@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=77.0.3"]
+requires = ["setuptools>=77.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "scrapegoat-loom"
 version = "1.1.0"
-description = "A subpackage of scrapegoat used to visualize the DOM tree and build Goatspeak queries."
+description = "A subpackage of Scrapegoat used to visualize the DOM tree and build Goatspeak queries."
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
 authors = [
@@ -21,9 +21,11 @@ dependencies = [
 keywords = ["scraping", "visualizer", "textual", "cli", "dom"]
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
   "Operating System :: OS Independent",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License"
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 
 [project.urls]
@@ -39,4 +41,4 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"scrapegoat_loom" = ["gui-styles/*"]
+scrapegoat_loom = ["gui-styles/*"]
