@@ -188,6 +188,30 @@ class HTMLNode:
             if value is None:
                 return self.body is not None
             return self.body == value
+        if key == "retrieval_instructions":
+            if value is None:
+                return self.retrieval_instructions is not None
+            return self.retrieval_instructions == value
+        if key == "extract_fields":
+            if value is None:
+                return self.extract_fields is not None
+            return self.extract_fields == value
+        if key == "extract_flags":
+            if value is None:
+                return self.extract_flags is not None
+            return self.extract_flags == value
+        if key == "parent":
+            if value is None:
+                return self.parent is not None
+            return self.parent and str(self.parent.id) == value
+        if key == "children":
+            if value is None:
+                return len(self.children) > 0
+            return any(str(child.id) == value for child in self.children)
+        if key == "raw":
+            if value is None:
+                return self.raw is not None
+            return self.raw == value
         return False
     
     def is_descendant_of(self, tag_type) -> bool:
