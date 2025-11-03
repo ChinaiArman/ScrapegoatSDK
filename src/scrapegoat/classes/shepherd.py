@@ -1,6 +1,8 @@
 """
 """
 
+import os
+
 from .gardener import Gardener
 from .goat import Goat
 from .interpreter import Interpeter
@@ -25,7 +27,7 @@ class Shepherd:
     def herd(self, query: str) -> list:
         """
         """
-        goatspeak = self.interpreter.interpret(query)
+        goatspeak = self._convert_query_to_goatspeak(query)
 
         results = []
 
@@ -36,6 +38,21 @@ class Shepherd:
 
         return list(dict.fromkeys(results))
     
+    def _convert_query_to_goatspeak(self, query: str) -> None:
+        """
+        """
+        if os.path.isfile(query):
+            try:
+                return self.interpreter.interpret(self.milkman.receive(query))
+            except Exception as e:
+                raise e
+        try:
+            return self.interpreter.interpret(query)
+        except Exception as e:
+            raise e
+            
+            
+
     def _query_list_handler(self, query_list: str, root, results) -> list:
         """
         """
@@ -54,7 +71,7 @@ class Shepherd:
     def _local_herd(self, query: str, root) -> list:
         """
         """
-        goatspeak = self.interpreter.interpret(query)
+        goatspeak = self._convert_query_to_goatspeak(query)
 
         results = []
 

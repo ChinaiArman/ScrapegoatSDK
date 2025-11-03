@@ -21,7 +21,7 @@ def main():
     OUTPUT csv --filename "test2" --filepath "./outputs";
     """
 
-    shepherd.herd(query)
+    shepherd.herd("example.goat")
 
 
     # html = Sheepdog().fetch("https://en.wikipedia.org/wiki/Web_scraping")
