@@ -52,9 +52,30 @@ class Tokenizer:
         self.FILE_TYPES = {"json", "csv"}
         self.FLAGS = {}
 
+    def _preprocess_query(self, query: str) -> str:
+        """
+        """
+        query = re.sub(r'\[.*?\]', '', query, flags=re.DOTALL)
+        query = re.sub(r'^\s*!goatspeak\s*', '', query, flags=re.IGNORECASE)
+        pattern = r"""
+            (?:'[^'\\]*(?:\\.[^'\\]*)*' |      # single-quoted string
+            "[^"\\]*(?:\\.[^"\\]*)*" |        # double-quoted string
+            //.*$                             # line comment
+            )
+        """
+        def replacer(m):
+            s = m.group(0)
+            # Only remove if it’s a comment, not quoted text
+            return '' if s.strip().startswith('//') else s
+
+        query = re.sub(pattern, replacer, query, flags=re.MULTILINE | re.VERBOSE)
+        return query
+
     def tokenize(self, query: str) -> list[Token]:
         """
         """
+        query = self._preprocess_query(query)
+        
         tokens = []
         pattern = (
             r'(--[A-Za-z0-9_-]+|'
