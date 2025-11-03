@@ -32,7 +32,3 @@ FindModal > Button {
 ListView {
 	margin: 0 1 1 1;
 }
-
-HorizontalScroll {
-	scrollbar-visibility: visible;
-}
