@@ -32,11 +32,11 @@ class Shepherd:
         for block in goatspeak:
             html = self.sheepdog.fetch(block.fetch_command)
             root = self.gardener.grow_tree(html)
-            results.extend(self._query_list_handler(block.query_list, root))
+            self._query_list_handler(block.query_list, root, results)
 
         return list(dict.fromkeys(results))
     
-    def _query_list_handler(self, query_list: str, root) -> list:
+    def _query_list_handler(self, query_list: str, root, results) -> list:
         """
         """
         for query in query_list:
@@ -44,9 +44,12 @@ class Shepherd:
             if query.churn_command:
                 self.milkmaid.churn(query_results, query.churn_command)
 
+            results.extend(query_results)
+
             if query.deliver_command:
-                self.milkman.deliver(query_results, query.deliver_command)
-        return query_results
+                self.milkman.deliver(results, query.deliver_command)
+                results.clear()
+        return
         
     def _local_herd(self, query: str, root) -> list:
         """
@@ -56,7 +59,7 @@ class Shepherd:
         results = []
 
         for block in goatspeak:
-            results.extend(self._query_list_handler(block.query_list, root))
+            self._query_list_handler(block.query_list, root, results)
                 
         return list(dict.fromkeys(results))
     
