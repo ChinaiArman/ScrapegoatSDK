@@ -8,9 +8,13 @@ from importlib.resources import files
 from platform import system
 from subprocess import Popen, PIPE
 
-NodeAttributes = [
-	"tag_type", "id", "has_data", "body"
-]
+NodeAttributes = (
+	"tag_type", "id", "has_data", "body", "parent", "children"
+)
+
+ChurnFlags = (
+	"ignore-children", "ignore-grandchildren"
+)
 
 def write_to_clipboard(string:str) -> None:
 	os_name = system()
@@ -32,6 +36,7 @@ class NodeWrapper():
 		self.branch = branch
 		self.added_to_query = False
 		self.extract_attributes = []
+		self.flags = []
 
 	def _update_branch_label(self, new_label:str):
 		self.branch.label = new_label
@@ -59,9 +64,11 @@ class NodeWrapper():
 		return self.added_to_query
 	
 	def get_retrieval_instructions(self) -> str:
-		if len(self.extract_attributes) == 0:
-			return self.node.retrieval_instructions
-		else:
+		instructions = self.node.retrieval_instructions
+		if len(self.extract_attributes) == 0 and len(self.flags) == 0:
+			return instructions
+		
+		if len(self.extract_attributes) > 0:
 			instructions = self.node.retrieval_instructions
 			instructions += "\nEXTRACT "
 			for attribute in self.extract_attributes:
@@ -69,20 +76,40 @@ class NodeWrapper():
 				if attribute != self.extract_attributes[-1]:
 					instructions += ", "
 
-			instructions += ";"
+		if len(self.flags) > 0:
+			if len(self.extract_attributes) == 0:
+				instructions += "\nEXTRACT"
 
-			return instructions
+			instructions += " "
+
+			for flag in self.flags:
+				instructions += f"--{flag}"
+				if flag != self.flags[-1]:
+					instructions += " "
+
+		return instructions + ";"
 	
 	def append_attribute(self, attribute_name) -> None:
 		if attribute_name not in self.extract_attributes:
 			self.extract_attributes.append(attribute_name)
 
+	def append_flag(self, flag) -> None:
+		if flag not in self.flags:
+			self.flags.append(flag)
+
 	def remove_attribute(self, attribute_name) -> None:
 		if attribute_name in self.extract_attributes:
 			self.extract_attributes.remove(attribute_name)
 
+	def remove_flag(self, flag) -> None:
+		if flag in self.flags:
+			self.flags.remove(flag)
+
 	def check_query_attribute(self, attribute) -> bool:
 		return attribute in self.extract_attributes
+	
+	def check_flag(self, flag) -> bool:
+		return flag in self.flags
 	
 	def __contains__(self, item) -> bool:	
 		if item in f"<{self.tag_type}>":
@@ -110,12 +137,14 @@ class ControlPanel(VerticalGroup):
 	def compose(self):
 		self.node_details = {
 			"node_desc": ListView(),
-			"queried_attributes": HorizontalScroll()
+			"queried_attributes": HorizontalScroll(),
+			"flags": HorizontalScroll()
 		}
 
 		with Collapsible(title="Node Details"):
 			yield self.node_details["node_desc"]
 			yield self.node_details["queried_attributes"]
+			yield self.node_details["flags"]
 
 		self.contextual_button = Button("<+>", id="node-add-remove", variant="success")
 		self.copy_button = Button("<Copy>", id="copy-query", variant="primary")
@@ -133,6 +162,9 @@ class ControlPanel(VerticalGroup):
 		for child in list(self.node_details["queried_attributes"].children):
 			child.remove()
 
+		for child in list(self.node_details["flags"].children):
+			child.remove()
+
 		self.current_node = node
 		if node is not None:
 			if node.get_querying():
@@ -146,7 +178,10 @@ class ControlPanel(VerticalGroup):
 				index = f"node-attribute-{node.id}-{node_attribute}"
 
 				if node.node.has_attribute(node_attribute):
-					if node_attribute != "body":
+					if node_attribute == "children":
+						children = [child.id for child in node.node.children]
+						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {", ".join(children)}")))
+					elif node_attribute != "body":
 						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: {node.node.to_dict()[node_attribute]}")))
 					elif len(node.node.body) > 0:
 						self.node_details["node_desc"].append(ListItem(Static(f"{node_attribute}: ...")))
@@ -162,7 +197,12 @@ class ControlPanel(VerticalGroup):
 					Checkbox(f"{html_attribute}", id=index, value=self.current_node.check_query_attribute(html_attribute))
 				)
 
-			
+			for flag in ChurnFlags:
+				index = f"flag-{node.id}-{flag}"
+
+				self.node_details["flags"].mount(
+					Checkbox(f"{flag}", id=index, value=self.current_node.check_flag(flag))
+				)
 	
 	def add_node(self):
 		if self.current_node and self.current_node not in self.query_nodes:
@@ -184,6 +224,14 @@ class ControlPanel(VerticalGroup):
 
 		text_area = self.query_one(TextArea)
 		text_area.text = text_area.text.replace(prev_instr, new_instr)
+
+	def append_flag(self, flag):
+		prev_instr = self.current_node.get_retrieval_instructions()
+		self.current_node.append_flag(flag)
+		new_instr = self.current_node.get_retrieval_instructions()
+
+		text_area = self.query_one(TextArea)
+		text_area.text = text_area.text.replace(prev_instr, new_instr)
 	
 	def remove_node(self):
 		if self.current_node and self.current_node in self.query_nodes:
@@ -201,6 +249,14 @@ class ControlPanel(VerticalGroup):
 	def remove_attribute(self, attribute):
 		prev_instr = self.current_node.get_retrieval_instructions()
 		self.current_node.remove_attribute(attribute)
+		new_instr = self.current_node.get_retrieval_instructions()
+
+		text_area = self.query_one(TextArea)
+		text_area.text = text_area.text.replace(prev_instr, new_instr)
+
+	def remove_flag(self, flag):
+		prev_instr = self.current_node.get_retrieval_instructions()
+		self.current_node.remove_flag(flag)
 		new_instr = self.current_node.get_retrieval_instructions()
 
 		text_area = self.query_one(TextArea)
@@ -306,10 +362,16 @@ class Loom(App):
 				self.query_one(Tree).move_cursor(self.current_search_nodes[self.search_node_index].branch, True)
 
 	def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
-		if event.checkbox.value:
-			self.control_panel.append_attribute(str(event.checkbox.label))
-		else:
-			self.control_panel.remove_attribute(str(event.checkbox.label))
+		if "flag" == event.checkbox.id[0:4]:
+			if event.checkbox.value:
+				self.control_panel.append_flag(str(event.checkbox.label))
+			else:
+				self.control_panel.remove_flag(str(event.checkbox.label))
+		elif "html-attribute" == event.checkbox.id[0:14] or "node-attribute" == event.checkbox.id[0:14]:
+			if event.checkbox.value:
+				self.control_panel.append_attribute(str(event.checkbox.label))
+			else:
+				self.control_panel.remove_attribute(str(event.checkbox.label))
 
 	def on_input_changed(self, event: Input.Changed) -> None:
 		if event.input.id == "find-node-input":
