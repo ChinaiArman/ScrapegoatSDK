@@ -356,19 +356,6 @@ class VisitParser(Parser):
 
         instruction = FetchCommand(url=url, **flags)
         return instruction, index + 1
-    
-class GoatFileParser(Parser):
-    """
-    """
-    def __init__(self):
-        """
-        """
-        pass
-
-    def parse(self, tokens, index) -> tuple:
-        """
-        """
-        pass
 
 
 class Interpeter:
@@ -378,7 +365,6 @@ class Interpeter:
         self.tokenizer = Tokenizer()
         self.condition_parser = ConditionParser()
         self.flag_parser = FlagParser()
-        self.goat_file_parser = GoatFileParser()
         self.action_parsers = {
             "visit": VisitParser(self.flag_parser),
             "scrape": ScrapeSelectParser(self.condition_parser, self.flag_parser),
