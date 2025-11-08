@@ -1,0 +1,118 @@
+{
+	"scopeName": "source.goat",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#actions"
+		},
+		{
+			"include": "#keywordsAndConditionals"
+		},
+		{
+			"include": "#operators"
+		},
+		{
+			"include": "#filetypes"
+		},
+		{
+			"include": "#flags"
+		},
+		{
+			"include": "#identifiers"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"match": "//.*$",
+					"name": "comment.line.double-slash.goat"
+				},
+				{
+					"begin": "\\[",
+					"end": "\\]",
+					"name": "comment.block.bracket.goat"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"match": "\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'",
+					"name": "string.quoted.goat"
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"match": "\\b\\d+\\b",
+					"name": "constant.numeric.goat"
+				}
+			]
+		},
+		"actions": {
+			"patterns": [
+				{
+					"match": "(?i)\\b(VISIT|SELECT|SCRAPE|EXTRACT|OUTPUT)\\b",
+					"name": "keyword.control.action.goat"
+				}
+			]
+		},
+		"keywordsAndConditionals": {
+			"patterns": [
+				{
+					"match": "(?i)\\b(IF|IN|POSITION|NOT)\\b",
+					"name": "keyword.other.goat"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"match": "!=|==|=",
+					"name": "keyword.operator.comparison.goat"
+				},
+				{
+					"match": ";",
+					"name": "punctuation.terminator.statement.goat"
+				},
+				{
+					"match": ",",
+					"name": "punctuation.separator.comma.goat"
+				}
+			]
+		},
+		"filetypes": {
+			"patterns": [
+				{
+					"match": "(?i)\\b(JSON|CSV)\\b",
+					"name": "storage.type.file.goat"
+				}
+			]
+		},
+		"flags": {
+			"patterns": [
+				{
+					"match": "--[A-Za-z0-9_-]+",
+					"name": "variable.parameter.flag.goat"
+				}
+			]
+		}
+	},
+	"fileTypes": [
+		"goat",
+		"g",
+		"goatspeak"
+	],
+	"name": "Goatspeak",
+	"uuid": "c0ffee-babe-baad-f00d-feedface1234"
+}
