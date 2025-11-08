@@ -1,25 +1,51 @@
 {
-  "name": "goat-language-support",
-  "displayName": "goat-language-support",
-  "description": "Language support for the Goatspeak language",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.105.0"
-  },
-  "categories": [
-    "Programming Languages"
-  ],
-  "contributes": {
-    "languages": [{
-      "id": "goat",
-      "aliases": ["Goatspeak", "goat"],
-      "extensions": [".goat",".g",".goatspeak"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "goat",
-      "scopeName": "source.goat",
-      "path": "./syntaxes/goat.tmLanguage.json"
-    }]
-  }
+    "name": "goat-language-support",
+    "displayName": "goat-language-support",
+    "description": "Language support for the Goatspeak language",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.105.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "goat",
+                "aliases": [
+                    "Goatspeak",
+                    "goat"
+                ],
+                "extensions": [
+                    ".goat",
+                    ".g",
+                    ".goatspeak"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "goat",
+                "scopeName": "source.goat",
+                "path": "./syntaxes/goat.tmLanguage.json"
+            }
+        ]
+    },
+    "activationEvents": [],
+    "main": "./out/client/src/extension.js",
+    "scripts": {
+        "compile": "tsc -p ."
+    },
+    "dependencies": {
+        "vscode-languageclient": "^9.0.1",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-textdocument": "^1.0.12"
+    },
+    "devDependencies": {
+        "@types/node": "^20.19.24",
+        "@types/vscode": "^1.105.0",
+        "typescript": "^5.9.3"
+    }
 }
