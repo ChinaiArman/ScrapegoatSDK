@@ -19,7 +19,7 @@ class Sheepdog:
         "Sec-Fetch-Dest": "document",
         "Sec-Fetch-Mode": "navigate",
     }
-    
+
     def __init__(self, getter=None):
         """
         """
@@ -51,6 +51,8 @@ class HeadlessSheepdog(Sheepdog):
         super().__init__(getter)
 
     def getter(self, url: str, **kwargs):
+        """
+        """
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
