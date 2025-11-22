@@ -19,6 +19,7 @@ class Sheepdog:
         "Sec-Fetch-Dest": "document",
         "Sec-Fetch-Mode": "navigate",
     }
+    
     def __init__(self, getter=None):
         """
         """
