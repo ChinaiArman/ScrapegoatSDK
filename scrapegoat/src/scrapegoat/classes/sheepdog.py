@@ -63,7 +63,7 @@ class HeadlessSheepdog(Sheepdog):
                 return page.content()
         except Exception as e:
             if "Executable doesn't exist" in str(e):
-                raise RuntimeError("Playwright browser executables are not installed. Please run 'playwright install' to install them.") from e
+                raise RuntimeError("Playwright browser executables are not installed. Please run 'playwright install' to install them.")
 
 
 def main():
