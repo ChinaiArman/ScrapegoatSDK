@@ -171,29 +171,23 @@ class DeliverCommand(Command):
 class FetchCommand(Command):
     """
     """
-    HEADERS = {
-        "User-Agent": "Mozilla/5.0 (Scrapegoat)",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Accept": "*/*",
-        "DNT": "1",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-    }
-    def __init__(self, url: str):
+    def __init__(self, url: str, **kwargs):
         """
         """
         super().__init__(action="visit")
+        self.getter = requests.get
         self.url = url
+        self.kwargs = kwargs
     
     def execute(self) -> str:
         """
         """
-        response = requests.get(self.url, headers=self.HEADERS)
-        response.raise_for_status()
-        return response.text
+        return self.getter(self.url, **self.kwargs)
+    
+    def set_getter(self, getter):
+        """
+        """
+        self.getter = getter
     
     def __eq__(self, other):
         """

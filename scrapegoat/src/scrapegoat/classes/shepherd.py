@@ -14,15 +14,15 @@ from .sheepdog import Sheepdog
 class Shepherd:
     """
     """
-    def __init__(self):
+    def __init__(self, gardener=None, sheepdog=None, goat=None, milkmaid=None, milkman=None):
         """
         """
-        self.gardener = Gardener()
+        self.gardener = gardener if gardener else Gardener()
         self.interpreter = Interpeter()
-        self.sheepdog = Sheepdog()
-        self.goat = Goat()
-        self.milkmaid = Milkmaid()
-        self.milkman = Milkman()
+        self.sheepdog = sheepdog if sheepdog else Sheepdog()
+        self.goat = goat if goat else Goat()
+        self.milkmaid = milkmaid if milkmaid else Milkmaid()
+        self.milkman = milkman if milkman else Milkman()
     
     def herd(self, query: str) -> list:
         """
