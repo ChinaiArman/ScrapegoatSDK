@@ -19,10 +19,10 @@ class Sheepdog:
         "Sec-Fetch-Dest": "document",
         "Sec-Fetch-Mode": "navigate",
     }
-    def __init__(self):
+    def __init__(self, getter=None):
         """
         """
-        pass
+        self.getter = getter or self.getter
 
     def fetch(self, fetch_command: Union[str, FetchCommand]) -> str:
         """
