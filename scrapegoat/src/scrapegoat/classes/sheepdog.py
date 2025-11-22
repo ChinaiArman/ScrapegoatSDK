@@ -1,9 +1,11 @@
 """
 """
+
 from typing import Union
 import requests
 
 from .command import FetchCommand
+
 
 class Sheepdog:
     """
