@@ -40,6 +40,32 @@ class Sheepdog:
         response.raise_for_status()
         return response.text
 
+
+class HeadlessSheepdog(Sheepdog):
+    """
+    """
+    def __init__(self, getter=None):
+        """
+        """
+        super().__init__(getter)
+
+    def getter(self, url: str, **kwargs):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            raise RuntimeError("Playwright is not installed. Please install it with 'pip install playwright'")
+
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(url, wait_until="networkidle")
+                return page.content()
+        except Exception as e:
+            if "Executable doesn't exist" in str(e):
+                raise RuntimeError("Playwright browser executables are not installed. Please run 'playwright install' to install them.") from e
+
+
 def main():
     """
     """

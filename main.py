@@ -1,25 +1,14 @@
 """
 """
 
-from scrapegoat import Shepherd, Gardener, Sheepdog
+from scrapegoat import Shepherd, Gardener, Sheepdog, HeadlessSheepdog
 from scrapegoat_loom import Loom
-
-
-
-class NewSheepDog(Sheepdog):
-    """
-    """
-    def getter(self, url: str, **kwargs) -> str:
-        """
-        """
-        print(f"Fetching URL: {url}")
-        return super().getter(url, **kwargs)
 
 def main():
     """
     """
     # SHEPHERD EXAMPLE
-    shepherd = Shepherd(sheepdog=NewSheepDog())
+    shepherd = Shepherd(sheepdog=HeadlessSheepdog())
     shepherd.herd("example.goat")
 
     # LOOM EXAMPLE

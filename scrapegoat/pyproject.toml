@@ -33,3 +33,6 @@ where = ["src"]
 
 [project.optional-dependencies]
 loom = ["scrapegoat-loom>=1.1.0"]
+js = [
+  "playwright>=1.56.0",
+]
